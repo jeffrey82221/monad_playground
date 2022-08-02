@@ -66,14 +66,22 @@ class PandasMonad(Monad):
                 error_traceback = str(traceback.format_exc())
                 success = False
             time_elapsed = time.time() - time_start
+            cols_in_args = [','.join(a.columns) for a in args]
+            cols_in_kwargs = [key + ':' + ','.join(value.columns) for key, value in kwargs.items()]
             if success:
+                if isinstance(out, list):
+                    cols_in_out = [','.join(o.columns) for o in out]
+                elif isinstance(out, tuple):
+                    cols_in_out = [','.join(o.columns) for o in out]
+                else:
+                    cols_in_out = ','.join(out.columns)
                 logs = {
                     'success': success,
                     'in': {
-                        'args': str(args),
-                        'kwargs': str(kwargs)
+                        'cols_in_args': cols_in_args,
+                        'cols_in_kwargs': cols_in_kwargs 
                     },
-                    'out': str(out),
+                    'cols_in_out': cols_in_out,
                     'time': time_elapsed,
                     'func': orig_func.__name__,
                     'module': filename_with_path
@@ -82,8 +90,8 @@ class PandasMonad(Monad):
                 logs = {
                     'success': success,
                     'in': {
-                        'args': str(args),
-                        'kwargs': str(kwargs)
+                        'cols_in_args': cols_in_args,
+                        'cols_in_kwargs': cols_in_kwargs
                     },
                     'exception': str(exception),
                     'traceback': error_traceback,
