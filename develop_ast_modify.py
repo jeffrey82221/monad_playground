@@ -1,7 +1,8 @@
 """
 TODO:
 - [ ] 1. change main_func -> target_main_func 
-- [ ] 2. assert that all lines should be x = self.xxx(x, x)
+- [ ] 2. target_main_func should not have strong type 
+- [ ] 3. assert that all lines should be x = self.xxx(x, x)
 """
 class CustomizeProcess:
     """
