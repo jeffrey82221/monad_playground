@@ -68,20 +68,27 @@ class PandasMonad(Monad):
             time_elapsed = time.time() - time_start
             cols_in_args = [','.join(a.columns) for a in args]
             cols_in_kwargs = [key + ':' + ','.join(value.columns) for key, value in kwargs.items()]
+            table_size_in_args = [','.join(str(len(a))) for a in args]
+            table_size_in_kwargs = [key + ':' + ','.join(str(len(value))) for key, value in kwargs.items()]
             if success:
-                if isinstance(out, list):
+                if isinstance(out, list) or isinstance(out, tuple):
                     cols_in_out = [','.join(o.columns) for o in out]
-                elif isinstance(out, tuple):
-                    cols_in_out = [','.join(o.columns) for o in out]
+                    table_size_in_out = [','.join(str(len(o))) for o in out]
                 else:
                     cols_in_out = ','.join(out.columns)
+                    table_size_in_out = ','.join(str(len(out)))
                 logs = {
                     'success': success,
                     'in': {
                         'cols_in_args': cols_in_args,
-                        'cols_in_kwargs': cols_in_kwargs 
+                        'cols_in_kwargs': cols_in_kwargs,
+                        'table_size_in_args': table_size_in_args,
+                        'table_size_in_kwargs': table_size_in_kwargs
                     },
-                    'cols_in_out': cols_in_out,
+                    'out': {
+                        'cols_in_out': cols_in_out,
+                        'table_size_in_out': table_size_in_out
+                    },
                     'time': time_elapsed,
                     'func': orig_func.__name__,
                     'module': filename_with_path
@@ -91,7 +98,9 @@ class PandasMonad(Monad):
                     'success': success,
                     'in': {
                         'cols_in_args': cols_in_args,
-                        'cols_in_kwargs': cols_in_kwargs
+                        'cols_in_kwargs': cols_in_kwargs,
+                        'table_size_in_args': table_size_in_args,
+                        'table_size_in_kwargs': table_size_in_kwargs
                     },
                     'exception': str(exception),
                     'traceback': error_traceback,
