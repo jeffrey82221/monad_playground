@@ -19,17 +19,23 @@ def create_dummy_df():
           ignore_index = True)
     return df
 
-def append_df(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
-    result = pd.concat([df1, df2])
-    return result
+class PDProcess:
+    def main(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+        df_big = self.append_df(df, df)
+        df_reset = self.reset_index(df_big)
+        return df_reset
 
-def reset_index(df: pd.DataFrame) -> pd.DataFrame:
-    return df.reset_index()
+    def append_df(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+        result = pd.concat([df1, df2])
+        return result
+
+    def reset_index(self, df: pd.DataFrame) -> pd.DataFrame:
+        return df.reset_index()
+    
+process = PDProcess()
 
 if __name__ == '__main__':
     df = create_dummy_df()
-    print(df)
-    df_big = append_df(df, df)
-    print(df_big)
-    df_reset = reset_index(df_big)
-    print(df_reset)
+    result = process.main(df, df)
+    print(result)
+    
