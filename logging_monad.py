@@ -113,24 +113,24 @@ class LoggingMonad(Monad):
             else:
                 raise exception
         return wrapper
-        
-logging_monad = LoggingMonad()
-logging_bind = logging_monad.bind
 
-def sub_func_1_plus(a, b):
-    return a + b
+class CustomizeProcess(LoggingMonad):
+    def main_func(self, a, b):
+        p1 = self.bind(self.sub_func_1_plus)(a, b)
+        p2 = self.bind(self.sub_func_2_prod)(a, b)
+        return p1, p2
 
-def sub_func_2_prod(a, b):
-    return a * b
+    def sub_func_1_plus(self, a, b):
+        return a + b
 
-def main_func(a, b):
-    p1 = logging_bind(sub_func_1_plus)(a, b)
-    p2 = logging_bind(sub_func_2_prod)(a, b)
-    return p1, p2
+    def sub_func_2_prod(self, a, b):
+        return a * b
 
+    
+process = CustomizeProcess()
 
 if __name__ == '__main__':
-    c = main_func(logging_monad.return_cls(1), logging_monad.return_cls(2))
+    c = process.main_func(process.return_cls(1), process.return_cls(2))
     print(c)
     print(c[0].content)
     print(c[1].content)
