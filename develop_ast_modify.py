@@ -1,3 +1,8 @@
+"""
+TODO:
+- [ ] 1. change main_func -> target_main_func 
+- [ ] 2. assert that all lines should be x = self.xxx(x, x)
+"""
 class CustomizeProcess:
     """
     def target_main_func(self, a, b):
