@@ -5,6 +5,7 @@ such that all functions within it are
 log enabled
 """
 import pandas as pd
+from monad import Monad
 
 def create_dummy_df():
     df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
