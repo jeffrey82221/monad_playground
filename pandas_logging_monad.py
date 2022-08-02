@@ -33,14 +33,15 @@ class PandasMonad(Monad):
         NOTE: a content property must be included in the return object
         """
         class ReturnObj:
-            def __init__(self, content):
+            def __init__(self, content: pd.DataFrame):
                 self.__uuid_str = str(uuid.uuid4())
-                content.to_parquet(f'tmp/{self.__uuid_str}.parquet')
-                print('save to parquet')
+                self.__file_dir = f'tmp/{self.__uuid_str}.parquet'
+                content.to_parquet(self.__file_dir)
+                print(f'save into {self.__file_dir}')
             
             @property
-            def content(self):
-                print('read from parquet')
+            def content(self) -> pd.DataFrame:
+                print(f'load from {self.__file_dir}')
                 # remove parquet
                 return pd.read_parquet(f'tmp/{self.__uuid_str}.parquet')
             
