@@ -18,7 +18,7 @@ class Monad:
     @abc.abstractmethod
     def decorator(self, orig_func):
         """The decorator that bind into the function"""
-        raise NotImplementedError('decorator must be implement')
+        return orig_func
         
     def bind(self, orig_func):
         '''decorator for allowing a function to support monad design pattern'''
