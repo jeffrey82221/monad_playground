@@ -7,6 +7,11 @@ log enabled
 import pandas as pd
 from monad import Monad
 import uuid
+from functools import wraps
+import time
+import inspect
+import traceback
+
 
 def create_dummy_df():
     df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
@@ -40,6 +45,59 @@ class PandasMonad(Monad):
                 return pd.read_parquet(f'tmp/{self.__uuid_str}.parquet')
             
         return ReturnObj
+
+    def decorator(self, orig_func):
+        return self.log_wrapping(orig_func)
+
+    def log_wrapping(self, orig_func): 
+        '''decorator for saving input, output & elapased time of a function'''
+        @wraps(orig_func)
+        def wrapper(*args, **kwargs):
+            """
+            function warped by warp_log
+            """
+            filename_with_path = inspect.getfile(orig_func)
+            time_start = time.time()
+            try:
+                out = orig_func(*args, **kwargs)
+                success = True
+            except BaseException as e:
+                exception = e
+                error_traceback = str(traceback.format_exc())
+                success = False
+            time_elapsed = time.time() - time_start
+            if success:
+                logs = {
+                    'success': success,
+                    'in': {
+                        'args': str(args),
+                        'kwargs': str(kwargs)
+                    },
+                    'out': str(out),
+                    'time': time_elapsed,
+                    'func': orig_func.__name__,
+                    'module': filename_with_path
+                }
+            else:
+                logs = {
+                    'success': success,
+                    'in': {
+                        'args': str(args),
+                        'kwargs': str(kwargs)
+                    },
+                    'exception': str(exception),
+                    'traceback': error_traceback,
+                    'time': time_elapsed,
+                    'func': orig_func.__name__,
+                    'module': filename_with_path
+                }
+            # simulate the logging behavior
+            print({'saved_log': logs})
+            if success:
+                return out
+            else:
+                raise exception
+        return wrapper
     
 
 class PDProcess(PandasMonad):
