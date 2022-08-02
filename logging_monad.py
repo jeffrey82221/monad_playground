@@ -62,6 +62,32 @@ def wrap_log(orig_func):
             raise exception
     return wrapper
 
+class ReturnMonad:
+    def __init__(self, content):
+        self.content = content
+        
+    
+def bind(orig_func):
+    '''decorator for allowing a function to support monad design pattern'''
+    @wraps(orig_func)
+    def wrapper(*args, **kwargs):
+        """
+        function warped by bind
+        """
+        # extract content from monad
+        args = [a.content for a in args] 
+        kargs = dict([(key, value.content) for key, value in kwargs.items()])
+        # adopt the original function to content
+        result = orig_func(*args, **kargs)
+        # encapsulate content into monad 
+        if isinstance(result, list):
+            return [ReturnMonad(x) for x in result]
+        elif isinstance(result, tuple):
+            return tuple([ReturnMonad(x) for x in result])
+        else:
+            return ReturnMonad(result)
+    return wrapper
+    
 
 def sub_func_1_plus(a, b):
     return a + b
@@ -70,11 +96,13 @@ def sub_func_2_prod(a, b):
     return a * b
 
 def main_func(a, b):
-    p1 = wrap_log(sub_func_1_plus)(a, b)
-    p2 = wrap_log(sub_func_2_prod)(a, b)
+    p1 = bind(wrap_log(sub_func_1_plus))(a, b)
+    p2 = bind(wrap_log(sub_func_2_prod))(a, b)
     return p1, p2
 
 
 if __name__ == '__main__':
-    c = main_func(1, 2)
+    c = main_func(ReturnMonad(1), ReturnMonad(2))
     print(c)
+    print(c[0].content)
+    print(c[1].content)
