@@ -81,10 +81,10 @@ class PandasMonad(Monad):
                 logs = {
                     'success': success,
                     'in': {
-                        'cols_in_args': cols_in_args,
-                        'cols_in_kwargs': cols_in_kwargs,
-                        'table_size_in_args': table_size_in_args,
-                        'table_size_in_kwargs': table_size_in_kwargs
+                        'args_cols': cols_in_args,
+                        'kwargs_cols': cols_in_kwargs,
+                        'args_table_size': table_size_in_args,
+                        'kwargs_table_size': table_size_in_kwargs
                     },
                     'out': {
                         'cols_in_out': cols_in_out,
@@ -98,10 +98,10 @@ class PandasMonad(Monad):
                 logs = {
                     'success': success,
                     'in': {
-                        'cols_in_args': cols_in_args,
-                        'cols_in_kwargs': cols_in_kwargs,
-                        'table_size_in_args': table_size_in_args,
-                        'table_size_in_kwargs': table_size_in_kwargs
+                        'args_cols': cols_in_args,
+                        'kwargs_cols': cols_in_kwargs,
+                        'args_table_size': table_size_in_args,
+                        'kwargs_table_size': table_size_in_kwargs
                     },
                     'exception': str(exception),
                     'traceback': error_traceback,
