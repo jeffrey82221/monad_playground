@@ -34,8 +34,8 @@ class PandasMonad(Monad):
         """
         class ReturnObj:
             def __init__(self, content: pd.DataFrame):
-                self.__uuid_str = str(uuid.uuid4())
-                self.__file_dir = f'tmp/{self.__uuid_str}.parquet'
+                uuid_str = str(uuid.uuid4())
+                self.__file_dir = f'tmp/{uuid_str}.parquet'
                 content.to_parquet(self.__file_dir)
                 print(f'save into {self.__file_dir}')
             
@@ -43,7 +43,7 @@ class PandasMonad(Monad):
             def content(self) -> pd.DataFrame:
                 print(f'load from {self.__file_dir}')
                 # remove parquet
-                return pd.read_parquet(f'tmp/{self.__uuid_str}.parquet')
+                return pd.read_parquet(self.__file_dir)
             
         return ReturnObj
 
