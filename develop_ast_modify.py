@@ -39,7 +39,7 @@ class ClassMethodTransformer(ast.NodeTransformer):
         Return:
             node_trans: transformed node
         """
-        assert node.func.value.id == "self", "Something wrong!!"
+        assert node.func.value.id == "self", "Only calling of class method are permitted"
         node_trans = ast.copy_location(
             ast.Call(
                 func=ast.Call(
