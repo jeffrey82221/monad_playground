@@ -1,9 +1,9 @@
 """
 TODO:
-- [ ] 1. change main_func -> target_main_func
-- [ ] 2. assert that all lines should be x = self.xxx(x, x)
-- [ ] 3. using `inspect.getsourcelines` to read the code of main_func
-- [ ] 4. adding target_main_func to CustomizeProcess when it is initialized
+- [X] 1. change main_func -> target_main_func
+- [X] 2. assert that all lines should be x = self.xxx(x, x)
+- [X] 3. using `inspect.getsourcelines` to read the code of main_func
+- [X] 4. adding target_main_func to CustomizeProcess when it is initialized
     - How?
         - 1. produce target_main_func at global
         - 2. assign target_main_func to CustomizeProcess when it is initialize
@@ -66,18 +66,12 @@ class ClassMethodTransformer(ast.NodeTransformer):
 
 
 class CustomizeProcess:
-    """
-    def target_main_func(self, a, b):
-        p1 = self.bind(self.sub_func_1_plus)(a, b)
-        p2 = self.bind(self.sub_func_2_prod)(a, b)
-        return p1, p2
-    """
 
     def __init__(self) -> None:
         self.__cls_method_trafo = ClassMethodTransformer()
-        self.__parse_main_func(self.main_func)
+        self.__parse_main_func(self.run)
 
-    def main_func(self, a, b):
+    def run(self, *args, **kargs):
         p1 = self.sub_func_1_plus(a, b)
         p2 = self.sub_func_2_prod(a, b)
         return p1, p2
@@ -92,7 +86,7 @@ class CustomizeProcess:
         return func
 
     def __parse_main_func(self, func: Callable) -> None:
-        """Parse `main_func` and construct the corresponding target
+        """Parse `run` and construct the corresponding target
         function `target_main_func` as new class method.
 
         Parameters:
@@ -102,7 +96,7 @@ class CustomizeProcess:
         lines = inspect.getsourcelines(func)[0]
         main_func_str = dedent("".join(lines))
         main_func_node = ast.parse(main_func_str).body[0]
-
+        
         # Construct `target_main_func` function node
         target_main_func_node = self.__gen_target_main_func_node(main_func_node)
 
@@ -114,7 +108,7 @@ class CustomizeProcess:
     def __gen_target_main_func_node(
         self, main_func_node: ast.FunctionDef
     ) -> ast.FunctionDef:
-        """Return `target_main_func` node corresponding to `main_func`.
+        """Return `target_main_func` node corresponding to `run`.
 
         Parameters:
             main_func_node: `main_func` function node
@@ -126,7 +120,7 @@ class CustomizeProcess:
         target_main_func_node.name = "target_main_func"
         target_main_func_node = self.__cls_method_trafo.visit(target_main_func_node)
 
-        # Remove function annotation
+        # Remove function annotation from target_main_func
         for i, arg in enumerate(target_main_func_node.args.args):
             target_main_func_node.args.args[i].annotation = None
         target_main_func_node.returns = None

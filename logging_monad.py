@@ -75,9 +75,9 @@ class LoggingMonad(Monad):
         return wrapper
 
 class CustomizeProcess(LoggingMonad):
-    def main_func(self, a, b):
-        p1 = self.bind(self.sub_func_1_plus)(a, b)
-        p2 = self.bind(self.sub_func_2_prod)(a, b)
+    def run(self, a, b):
+        p1 = self.sub_func_1_plus(a, b)
+        p2 = self.sub_func_2_prod(a, b)
         return p1, p2
 
     def sub_func_1_plus(self, a, b):
@@ -90,7 +90,7 @@ class CustomizeProcess(LoggingMonad):
 process = CustomizeProcess()
 
 if __name__ == '__main__':
-    c = process.main_func(process.return_cls(1), process.return_cls(2))
+    c = process.target_main_func(process.return_cls(1), process.return_cls(2))
     print(c)
     print(c[0].content)
     print(c[1].content)
