@@ -132,3 +132,9 @@ class CustomizeProcess:
         target_main_func_node.returns = None
 
         return target_main_func_node
+
+    
+if __name__ == '__main__':
+    c = CustomizeProcess()
+    print(c.target_main_func)
+    print(c.target_main_func(2, 3))
