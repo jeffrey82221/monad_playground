@@ -43,9 +43,9 @@ class PandasMonad(Monad):
     
 
 class PDProcess(PandasMonad):
-    def main(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
-        df_big = self.bind(self.append_df)(self.return_cls(df), self.return_cls(df))
-        df_reset = self.bind(self.reset_index)(df_big)
+    def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+        df_big = self.append_df(df1, df2)
+        df_reset = self.reset_index(df_big)
         return df_reset
 
     def append_df(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
@@ -59,6 +59,7 @@ process = PDProcess()
 
 if __name__ == '__main__':
     df = create_dummy_df()
-    result = process.main(df, df)
+    # process.return_cls(df), process.return_cls(df)
+    result = process.target_main_func(process.return_cls(df), process.return_cls(df))
     print(result)
     print(result.content)
