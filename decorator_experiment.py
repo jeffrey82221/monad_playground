@@ -8,20 +8,25 @@ def bind(orig_func):
         function warped by bind
         """
         result = orig_func(*args, **kwargs)
+        return result
     return wrapper
 
 
-def plus(a: int, b: int) -> int:
-    return a + b
+def plus(a: int, b: int) -> (int, int):
+    return a + b, b
 
 print(plus.__annotations__.items())
 @bind
-def plus(a: int, b: int) -> int:
-    return a + b
+def plus(a: int, b: int) -> (int, int):
+    return a + b, b
 
 print(plus.__annotations__.items())
 
+print(plus(1, 2))
 
 
+print(plus.__annotations__['return'])
+
+print(len(plus.__annotations__['return']))
     
         
