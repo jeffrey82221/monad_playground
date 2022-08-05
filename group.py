@@ -3,6 +3,7 @@ from functools import wraps
 from monad import Monad
 import pandas as pd
 import uuid
+import typing 
 
 class GroupMonad(Monad):
     def __init__(self, name, dag=None):        
@@ -49,8 +50,8 @@ class GroupMonad(Monad):
             """
             function warped by bind
             """
-            if isinstance(orig_func.__annotations__['return'], tuple):
-                return_cnt = len(orig_func.__annotations__['return'])
+            if isinstance(orig_func.__annotations__['return'], typing._GenericAlias):
+                return_cnt = len(orig_func.__annotations__['return'].__args__)
             elif isinstance(orig_func.__annotations__['return'], type):
                 return_cnt = 1
             else:
@@ -58,9 +59,9 @@ class GroupMonad(Monad):
             assert return_cnt > 0, 'Output should not be empty'
             if return_cnt > 1:
                 for i in range(return_cnt):
-                    assert orig_func.__annotations__['return'][i] == pd.DataFrame, f'Output {i} is not pd.DataFrame'
-                else:
-                    assert orig_func.__annotations__['return'] == pd.DataFrame, 'Output is not pd.DataFrame'
+                    assert orig_func.__annotations__['return'].__args__[i] == pd.DataFrame, f'Output {i} is not pd.DataFrame'
+            else:
+                assert orig_func.__annotations__['return'] == pd.DataFrame, 'Output is not pd.DataFrame'
                     
             return_objs = [self.return_cls() for i in range(return_cnt)]
             assert len(args) + 1 == len(orig_func.__annotations__.keys()), 'Please make sure input count is consistent'

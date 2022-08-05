@@ -1,18 +1,28 @@
+from typing import Tuple
 from group import GroupMonad
 import pandas as pd
 class PDProcess(GroupMonad):
-    def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
-        df_big = self.append_df(df1, df2)
+    def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        df_big, df_m = self.append_df(df1, df2)
         df_reset = self.reset_index(df_big)
-        return df_reset
+        return df_reset, df_m
 
-    def append_df(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+    def append_df(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         result = pd.concat([df1, df2])
-        return result
+        return result, df1
 
     def reset_index(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.reset_index()
     
+# class DagProcess:
+#     def __init__(self):
+#         self.pd_process_1 = PDProcess().run
+#         self.pd_process_2 = PDProcess().run
+#     def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+#         df_o1 = self.pd_process_1(df1, df2)
+#         df_o2 = self.pd_process_1(df1, df2)
+#         return df_o1, df_o2
+
 def create_dummy_df():
     df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
     df = df.append({'Name' : 'Ankit', 'Articles' : 97, 'Improved' : 2200},
