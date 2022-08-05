@@ -63,6 +63,18 @@ class Monad:
     def run(self, *args):
         """
         The main function to be altered by monad
+
+        Originally: 
+
+        a = self.func_1(b, c)
+        d = self.func_2(a)
+        return a, d
+
+        Becomes:
+
+        a = self.bind(self.func_1)(b, c)
+        d = self.bind(self.func_2)(a)
+        return a, d
         """
         raise NotImplementedError()
         
@@ -84,7 +96,7 @@ class Monad:
         return orig_func
         
     def bind(self, orig_func):
-        '''decorator for allowing a function to support monad design pattern'''
+        '''decorator to be bind to the `run` function, designed in monad pattern'''
         @wraps(orig_func)
         def wrapper(*args, **kwargs):
             """
