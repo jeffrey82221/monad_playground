@@ -5,13 +5,13 @@ such that all functions within it are
 log enabled
 """
 import pandas as pd
-from monad import Monad
 import uuid
 from functools import wraps
 import time
 import inspect
 import traceback
-
+import setting
+from monad import Monad
 
 def create_dummy_df():
     df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
@@ -135,6 +135,6 @@ process = PDProcess()
 
 if __name__ == '__main__':
     df = create_dummy_df()
-    result = process.target_main_func(process.return_cls(df), process.return_cls(df))
+    result = process.binded_run(process.return_cls(df), process.return_cls(df))
     print(result)
     print(result.content)

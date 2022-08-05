@@ -9,7 +9,7 @@ import time
 import traceback
 from functools import wraps
 import logging
-import abc
+import setting
 from monad import Monad
 
 class LoggingMonad(Monad):
@@ -90,7 +90,7 @@ class CustomizeProcess(LoggingMonad):
 process = CustomizeProcess()
 
 if __name__ == '__main__':
-    c = process.target_main_func(process.return_cls(1), process.return_cls(2))
+    c = process.binded_run(process.return_cls(1), process.return_cls(2))
     print(c)
     print(c[0].content)
     print(c[1].content)
