@@ -17,11 +17,13 @@ class GroupProcess(GroupMonad):
 class DagProcess:
     def __init__(self):
         self.pd_process_1 = GroupProcess('process_1').run
-        self.pd_process_2 = GroupProcess('process_2').run
+        self.go = GroupProcess('process_2')
     def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         df_o1 = self.pd_process_1(df1, df2)
         df_o2 = self.pd_process_1(df1, df2)
         return df_o1, df_o2
+    def pd_process_2(self, d1: pd.DataFrame, d2: pd.DataFrame) -> pd.DataFrame:
+        return self.go.run(d1, d2)
 
 def create_dummy_df():
     df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
