@@ -67,6 +67,6 @@ if __name__ == '__main__':
     print(process.run.__annotations__)
     return_obj = process.return_cls()
     return_obj.set_content(df)
-    result = process.target_main_func(return_obj, return_obj)
+    result = process.binded_run(return_obj, return_obj)
     print(result)
     print(process.run(df, df))

@@ -8,6 +8,8 @@ from textwrap import dedent
 from typing import Callable
 import astunparse
 
+TARGET_MAIN_FUNC = 'binded_run'
+
 
 class ClassMethodTransformer(ast.NodeTransformer):
     """Convert class method call to the binded class method call."""
@@ -104,7 +106,7 @@ class Monad:
     
     def __parse_main_func(self, func: Callable) -> None:
         """Parse `run` and construct the corresponding target
-        function `target_main_func` as new class method.
+        function `TARGET_MAIN_FUNC` as new class method.
 
         Parameters:
             func: function to parse
@@ -114,27 +116,27 @@ class Monad:
         main_func_str = dedent("".join(lines))
         main_func_node = ast.parse(main_func_str).body[0]
         
-        # Construct `target_main_func` function node
+        # Construct `TARGET_MAIN_FUNC` function node
         target_main_func_node = self.__gen_target_main_func_node(main_func_node)
 
         # Bind `target_main_func` as class method
         target_main_func_str = astunparse.unparse(target_main_func_node)
         exec(target_main_func_str, globals())
-        Monad.target_main_func = target_main_func
+        exec(f'Monad.{TARGET_MAIN_FUNC} = {TARGET_MAIN_FUNC}')
 
     def __gen_target_main_func_node(
         self, main_func_node: ast.FunctionDef
     ) -> ast.FunctionDef:
-        """Return `target_main_func` node corresponding to `run`.
+        """Return `TARGET_MAIN_FUNC` node corresponding to `run`.
 
         Parameters:
             main_func_node: `main_func` function node
 
         Return:
-            target_main_func_node: `target_main_func` function node
+            target_main_func_node: `TARGET_MAIN_FUNC` function node
         """
         target_main_func_node = deepcopy(main_func_node)
-        target_main_func_node.name = "target_main_func"
+        target_main_func_node.name = TARGET_MAIN_FUNC
         target_main_func_node = self.__cls_method_trafo.visit(target_main_func_node)
 
         # Remove function annotation from target_main_func
