@@ -1,7 +1,7 @@
 from typing import Tuple
 from group import GroupMonad
 import pandas as pd
-class PDProcess(GroupMonad):
+class GroupProcess(GroupMonad):
     def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         df_big, df_m = self.append_df(df1, df2)
         df_reset = self.reset_index(df_big)
@@ -14,14 +14,14 @@ class PDProcess(GroupMonad):
     def reset_index(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.reset_index()
     
-# class DagProcess:
-#     def __init__(self):
-#         self.pd_process_1 = PDProcess().run
-#         self.pd_process_2 = PDProcess().run
-#     def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-#         df_o1 = self.pd_process_1(df1, df2)
-#         df_o2 = self.pd_process_1(df1, df2)
-#         return df_o1, df_o2
+class DagProcess:
+    def __init__(self):
+        self.pd_process_1 = GroupProcess('process_1').run
+        self.pd_process_2 = GroupProcess('process_2').run
+    def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        df_o1 = self.pd_process_1(df1, df2)
+        df_o2 = self.pd_process_1(df1, df2)
+        return df_o1, df_o2
 
 def create_dummy_df():
     df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
@@ -63,10 +63,20 @@ if __name__ == '__main__':
             }
         }
     )
-    process = PDProcess('process', dag=dag)
+    ###########################################
+    #         GroupMonad Demo                 #
+    ###########################################
+    print('GroupMonad Demo')
+    process = GroupProcess('process', dag=dag)
     print(process.run.__annotations__)
     return_obj = process.return_cls()
     return_obj.set_content(df)
     result = process.binded_run(return_obj, return_obj)
     print(result)
     print(process.run(df, df))
+    ###########################################
+    #         DagMonad Demo                   #
+    ###########################################
+    print('DagMonad Demo')
+    dag_process = DagProcess()
+    print(dag_process.run(df, df))
