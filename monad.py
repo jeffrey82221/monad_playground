@@ -142,7 +142,7 @@ class Monad:
         """Return `TARGET_MAIN_FUNC` node corresponding to `run`.
 
         Parameters:
-            main_func_node: `main_func` function node
+            main_func_node: `run` function node
 
         Return:
             target_main_func_node: `TARGET_MAIN_FUNC` function node
