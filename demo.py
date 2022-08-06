@@ -57,6 +57,19 @@ class DagProcess:
 DagProcess().execute() # execute on aicloud (single pod)
 DagProcess('process_x', dag) # a dag on airflow 
 
+Questions - what should the features of dag monad be? 
+
+1. DAG connecting: 
+ - 1.1. Checking that the input table units match with the inputs defined in the GroupProcess
+ - 1.2. Connecting the task_group of group process to the ancestor task_group(s)
+ - 1.3. A `main_task` which return a `task_group` containing all `task_groups`(s) (more easily extended with additional task)
+2. Local Run; 
+ - 2.1. Append the execution unit of each binded method and run them one by one in a `run_locally` method 
+ - 2.2. Add logging of start & finish for every execution of GroupProcess
+3. Defining of input & output in TableUnit
+4. Allow the airflow task of a particular output to be selected to later connection 
+ 
+
 """
 
 def create_dummy_df():

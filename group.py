@@ -1,3 +1,15 @@
+"""
+TODO: 
+- [ ] Create TableUnit 
+- [ ] Add inputs and outputs properties 
+- [ ] Turn off `self.__parse_main_func` in monad if dag == None
+- [ ] Turn off `self.__parse_main_func` in monad if non-pd.DataFrame is included in the inputs / outputs of run
+- [ ] Add `execute` method that read data from TableUnit(s) of input, passing it to `run`, and stored the result into TableUnit(s) of output
+    - [ ] May have different behaviors dependent on the types: (pd.DataFrame, TableUnit, CSVGenerator, DataFrameGenerator) 
+- [ ] Add `build_task` method where an airflow task is build and returned (called only if dag is not None) 
+    - [ ] A PythonOperator calling `execute` should be contained if non-pd.DataFrame is included in the inputs / outputs of run
+    - [ ] 
+"""
 import abc
 from functools import wraps
 from monad import Monad
@@ -14,7 +26,26 @@ class GroupMonad(Monad):
             self.task_group = TaskGroup(group_id=f'{self.__class__.__name__}_{name}', dag=dag)
         self.__dag = dag
         self.__bind_index = 0
-        
+    
+    @abc.abstractmethod
+    def run(self, *args):
+        """
+        The main function to be altered by monad
+
+        Originally: 
+
+        a = self.func_1(b, c)
+        d = self.func_2(a)
+        return a, d
+
+        Becomes:
+
+        a = self.bind(self.func_1)(b, c)
+        d = self.bind(self.func_2)(a)
+        return a, d
+        """
+        raise NotImplementedError()
+
     @property
     @abc.abstractmethod
     def return_cls(self):
