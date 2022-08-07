@@ -7,8 +7,11 @@ TODO:
 - [ ] Add `execute` method that read data from TableUnit(s) of input, passing it to `run`, and stored the result into TableUnit(s) of output
     - [ ] May have different behaviors dependent on the types: (pd.DataFrame, TableUnit, CSVGenerator, DataFrameGenerator) 
 - [ ] Add `build_task` method where an airflow task is build and returned (called only if dag is not None) 
-    - [ ] A PythonOperator calling `execute` should be contained if non-pd.DataFrame is included in the inputs / outputs of run
-    - [ ] 
+    - [ ] if decompose=False or non-pd.DataFrame is included in the inputs / outputs of run
+        - [ ] A PythonOperator task calling `execute` should be contained 
+        - [ ] add `check`, to the front & end of `execute` task
+    - [ ] if all are pd.DataFrame & decompose = True
+        - [ ] connect `check` & `read` & `write` tasks to the front & end of the task group. 
 """
 import abc
 from functools import wraps
