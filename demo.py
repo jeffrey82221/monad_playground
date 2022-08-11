@@ -115,17 +115,24 @@ if __name__ == '__main__':
     ###########################################
     #         GroupMonad Demo                 #
     ###########################################
-    print('GroupMonad Demo')
+    print('#### GroupMonad Demo:####')
     process = GroupProcess('process', dag=dag)
+    print('run with airflow binded')
     print(process.run.__annotations__)
     return_obj = process.return_cls()
     return_obj.set_content(df)
     result = process.binded_run(return_obj, return_obj)
     print(result)
+    print('pure run')
     print(process.run(df, df))
+    print('run with decoration')
+    result = process.decorated_run(df, df)
+    print(result)
     ###########################################
     #         DagMonad Demo                   #
     ###########################################
-    print('DagMonad Demo')
+    print('#### DagMonad Demo ####')
     dag_process = DagProcess()
     print(dag_process.run(df, df))
+    
+    

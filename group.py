@@ -19,6 +19,10 @@ from monad import Monad
 import pandas as pd
 import uuid
 import typing 
+import inspect
+import time
+import traceback
+import logging
 
 class GroupMonad(Monad):
     def __init__(self, name, dag=None):        
@@ -80,7 +84,7 @@ class GroupMonad(Monad):
         '''Binding pandas operations in `run` task to a airflow task_group'''
         self.__bind_index += 1
         @wraps(orig_func)
-        def wrapper(*args, **kwargs):
+        def wrapper_of_bind(*args, **kwargs):
             """
             function warped by bind
             """
@@ -134,11 +138,81 @@ class GroupMonad(Monad):
                 return return_objs[0]
             else:
                 return return_objs
-        return wrapper
+        return wrapper_of_bind
     
     @abc.abstractmethod
     def decorator(self, orig_func):
         """The decorator that bind into the function"""
-        return orig_func
+        return self.logging(orig_func)
     
+    def logging(self, orig_func):
+        '''decorator for saving input, output & elapased time of a function'''
+        @wraps(orig_func)
+        def wrapper_of_logging(*args, **kwargs):
+            """
+            function warped by warp_log
+            """
+            filename_with_path = inspect.getfile(orig_func)
+            time_start = time.time()
+            try:
+                out = orig_func(*args, **kwargs)
+                success = True
+            except BaseException as e:
+                exception = e
+                error_traceback = str(traceback.format_exc())
+                success = False
+            time_elapsed = time.time() - time_start
+            cols_in_args = [', '.join(a.columns) for a in args]
+            cols_in_kwargs = [key + ': ' + ', '.join(value.columns) for key, value in kwargs.items()]
+            table_size_in_args = [', '.join(str(len(a))) for a in args]
+            table_size_in_kwargs = [key + ': ' + ', '.join(str(len(value))) for key, value in kwargs.items()]
+            if success:
+                if isinstance(out, list) or isinstance(out, tuple):
+                    cols_in_out = [', '.join(o.columns) for o in out]
+                    table_size_in_out = [', '.join(str(len(o))) for o in out]
+                else:
+                    cols_in_out = ', '.join(out.columns)
+                    table_size_in_out = ', '.join(str(len(out)))
+                logs = {
+                    'success': success,
+                    'in': {
+                        'args': {
+                            'cols': cols_in_args,
+                            'table_size': table_size_in_args
+                        },
+                        'kargs':{
+                            'cols': cols_in_kwargs,
+                            'table_size': table_size_in_kwargs
+                        }
+                    },
+                    'out': {
+                        'cols': cols_in_out,
+                        'table_size': table_size_in_out
+                    },
+                    'time': time_elapsed,
+                    'func': orig_func.__name__,
+                    'module': filename_with_path
+                }
+            else:
+                logs = {
+                    'success': success,
+                    'in': {
+                        'args_cols': cols_in_args,
+                        'kwargs_cols': cols_in_kwargs,
+                        'args_table_size': table_size_in_args,
+                        'kwargs_table_size': table_size_in_kwargs
+                    },
+                    'exception': str(exception),
+                    'traceback': error_traceback,
+                    'time': time_elapsed,
+                    'func': orig_func.__name__,
+                    'module': filename_with_path
+                }
+            # simulate the logging behavior
+            print({'saved_log': logs})
+            if success:
+                return out
+            else:
+                raise exception
+        return wrapper_of_logging
     
