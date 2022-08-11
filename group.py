@@ -157,7 +157,7 @@ class GroupMonad(Monad):
         emission_tracker = OfflineEmissionsTracker(
             country_iso_code="TWN",
             measure_power_secs=30, # frequency of making a probe
-            tracking_mode="process", # 
+            tracking_mode="machine", # machine or process
         )
         @wraps(orig_func)
         def wrapper_of_carbon_tracing(*args, **kwargs):
