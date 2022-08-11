@@ -1,3 +1,4 @@
 astunparse
 apache-airflow
 psycopg2
+codecarbon

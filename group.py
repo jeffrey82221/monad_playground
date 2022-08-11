@@ -20,9 +20,9 @@ import pandas as pd
 import uuid
 import typing 
 import inspect
-import time
 import traceback
 import logging
+import pprint
 
 class GroupMonad(Monad):
     def __init__(self, name, dag=None):        
@@ -142,8 +142,32 @@ class GroupMonad(Monad):
     
     @abc.abstractmethod
     def decorator(self, orig_func):
-        """The decorator that bind into the function"""
-        return self.logging(orig_func)
+        """
+        The decorator that bind into the function
+        
+        Example: 
+        
+        return self.a_decorator(self.b_decorator(orig_func))
+        """
+        return self.carbon_tracing(self.logging(orig_func))
+    
+    def carbon_tracing(self, orig_func):
+        '''decorator for tracing the carbon footprint and timing'''
+        from codecarbon import OfflineEmissionsTracker
+        emission_tracker = OfflineEmissionsTracker(
+            country_iso_code="TWN",
+            measure_power_secs=30, # frequency of making a probe
+            tracking_mode="process", # 
+        )
+        @wraps(orig_func)
+        def wrapper_of_carbon_tracing(*args, **kwargs):
+            emission_tracker.start()
+            out = orig_func(*args, **kwargs)
+            emission_tracker.stop()
+            emission_summary = emission_tracker.final_emissions_data
+            pprint.pprint(dict(emission_summary.values))
+            return out
+        return wrapper_of_carbon_tracing
     
     def logging(self, orig_func):
         '''decorator for saving input, output & elapased time of a function'''
@@ -153,7 +177,6 @@ class GroupMonad(Monad):
             function warped by warp_log
             """
             filename_with_path = inspect.getfile(orig_func)
-            time_start = time.time()
             try:
                 out = orig_func(*args, **kwargs)
                 success = True
@@ -161,7 +184,6 @@ class GroupMonad(Monad):
                 exception = e
                 error_traceback = str(traceback.format_exc())
                 success = False
-            time_elapsed = time.time() - time_start
             cols_in_args = [', '.join(a.columns) for a in args]
             cols_in_kwargs = [key + ': ' + ', '.join(value.columns) for key, value in kwargs.items()]
             table_size_in_args = [', '.join(str(len(a))) for a in args]
@@ -189,7 +211,6 @@ class GroupMonad(Monad):
                         'cols': cols_in_out,
                         'table_size': table_size_in_out
                     },
-                    'time': time_elapsed,
                     'func': orig_func.__name__,
                     'module': filename_with_path
                 }
@@ -204,7 +225,6 @@ class GroupMonad(Monad):
                     },
                     'exception': str(exception),
                     'traceback': error_traceback,
-                    'time': time_elapsed,
                     'func': orig_func.__name__,
                     'module': filename_with_path
                 }
