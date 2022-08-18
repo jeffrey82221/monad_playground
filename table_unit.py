@@ -67,17 +67,19 @@ class TableUnit:
         '''
         建立 table sql
         '''
-
-        query = f'CREATE TABLE IF NOT EXISTS {self.schema_name}.{self.table_name}('
+    
+        query = f'''CREATE TABLE IF NOT EXISTS {self.schema_name}.{self.table_name}(
+        '''
         for k in self.columns:
-            query += '\n\t{col_name}\t{col_type},'.format(
+            query += '''    {col_name}    {col_type},'''.format(
                 col_name = k,
                 col_type = self.yaml_file['columns'][k]['type']
             )
-        query = query[:-1] + ');'
+        query = query[:-1] + ''');
+        '''
 
         if self.yaml_file['indexes']:
-            query += '\nCREATE INDEX ON {schema_name}.{table_name} ({indexes});'.format(
+            query += '''CREATE INDEX ON {schema_name}.{table_name} ({indexes});'''.format(
                 schema_name = self.schema_name,
                 table_name = self.table_name,
                 indexes = str(self.yaml_file['indexes'])[1:-1]
