@@ -1,0 +1,11 @@
+table_name: datamart
+schema_name: mlaas_limit
+columns:
+  a:
+    type: INT
+    cn_name: 性別
+  b:
+    type: VARCHAR
+    cn_name: 年齡
+indexes: ['a']
+users: [22403]
