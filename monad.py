@@ -56,11 +56,41 @@ class Monad:
     
     @property
     def binded_run(self):
+        """
+        The binded `run` method:
+
+        Originally: 
+        def run(self, a, b, c):
+            a = self.func_1(b, c)
+            d = self.func_2(a)
+            return a, d
+
+        Becomes:
+        def binded_run(self, a, b, c):
+            a = self.bind(self.func_1)(b, c)
+            d = self.bind(self.func_2)(a)
+            return a, d
+        """
         self.__parse_main_func(self.run, decoration='bind', target_func_name='binded_run_real')
         return self.binded_run_real
 
     @property
     def decorated_run(self):
+        """
+        The decorated `run` method:
+        
+        Originally: 
+        def run(self, a, b, c):
+            a = self.func_1(b, c)
+            d = self.func_2(a)
+            return a, d
+
+        Becomes:
+        def decorated_run(self, a, b, c):
+            a = self.decorator(self.func_1)(b, c)
+            d = self.decorator(self.func_2)(a)
+            return a, d
+        """
         self.__parse_main_func(self.run, decoration='decorator', target_func_name='decorated_run_real')
         return self.decorated_run_real
 
