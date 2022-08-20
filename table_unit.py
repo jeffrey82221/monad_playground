@@ -3,9 +3,10 @@ import yaml
 import logging
 logging.basicConfig(level=logging.INFO)
 
+
 class TableUnit:
     def __init__(self, table_id):
-        self.addr=f'tables/{table_id}.yaml'
+        self.addr = f'tables/{table_id}.yaml'
 
         logger = logging.getLogger(__name__)
         # check if the yaml file exists
@@ -14,13 +15,13 @@ class TableUnit:
         else:
             with open(self.addr, 'r') as f:
                 self.yaml_file = yaml.load(f)
-    
+
     @property
     def columns(self):
         '''
         欄位列表
         '''
-        
+
         return list(self.yaml_file['columns'])
 
     @property
@@ -33,7 +34,7 @@ class TableUnit:
         for k in self.columns:
             res[k] = self.yaml_file['columns'][k]['cn_name']
         return res
-    
+
     @property
     def column_types(self):
         '''
@@ -44,7 +45,7 @@ class TableUnit:
         for k in self.columns:
             res[k] = self.yaml_file['columns'][k]['type']
         return res
-    
+
     @property
     def schema_name(self):
         '''
@@ -52,7 +53,7 @@ class TableUnit:
         '''
 
         return self.yaml_file['schema_name']
-    
+
     # table 名稱
     @property
     def table_name(self):
@@ -61,31 +62,31 @@ class TableUnit:
         '''
 
         return self.yaml_file['table_name']
-    
+
     @property
     def create_sql(self):
         '''
         建立 table sql
         '''
-    
+
         query = f'''CREATE TABLE IF NOT EXISTS {self.schema_name}.{self.table_name}(
         '''
         for k in self.columns:
             query += '''    {col_name}    {col_type},'''.format(
-                col_name = k,
-                col_type = self.yaml_file['columns'][k]['type']
+                col_name=k,
+                col_type=self.yaml_file['columns'][k]['type']
             )
         query = query[:-1] + ''');
         '''
 
         if self.yaml_file['indexes']:
             query += '''CREATE INDEX ON {schema_name}.{table_name} ({indexes});'''.format(
-                schema_name = self.schema_name,
-                table_name = self.table_name,
-                indexes = str(self.yaml_file['indexes'])[1:-1]
+                schema_name=self.schema_name,
+                table_name=self.table_name,
+                indexes=str(self.yaml_file['indexes'])[1:-1]
             )
         return query
-   
+
     @property
     def select_sql(self):
         '''
@@ -93,7 +94,7 @@ class TableUnit:
         '''
 
         return f'SELECT {str(self.columns)[1:-1]} FROM {self.schema_name}.{self.table_name};'
-    
+
     @property
     def drop_sql(self):
         '''
@@ -110,11 +111,12 @@ class TableUnit:
         '''
 
         query = 'GRANT ALL ON {schema_name}.{table_name} TO {users}'.format(
-            schema_name = self.schema_name,
-            table_name = self.table_name,
-            users = str(self.yaml_file['users'])[1:-1]
+            schema_name=self.schema_name,
+            table_name=self.table_name,
+            users=str(self.yaml_file['users'])[1:-1]
         )
         return query
+
 
 '''
     def check(self):

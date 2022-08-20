@@ -1,43 +1,44 @@
 """
-A monad design pattern 
+A monad design pattern
 that enable GroupMonad to be connected as DagMonad
 
 TODO:
-- [ ] Allow self.operations['a_func'](*args, **kwargs) to be decorated into 
+- [ ] Allow self.operations['a_func'](*args, **kwargs) to be decorated into
     self.binded(self.operations['a_func'])(*args, **kwargs)
     (same to `self.decorator`)
 - [ ] Define a __call__(self) method in the `Group` class to turn its instance
-    into a callable function. 
-    - [ ] Allow __call__ to be runnable on aicloud 
+    into a callable function.
+    - [ ] Allow __call__ to be runnable on aicloud
         - [ ] Takes TableUnit(s) as input and output TableUnit(s)
-        - [ ] Assert the *args (input table units) are the same as 
-            those defined in self.input_tables 
+        - [ ] Assert the *args (input table units) are the same as
+            those defined in self.input_tables
         - [ ] Returning self.output_tables
         - [ ] In the middle, do self.execute()
 - [ ] Implement self.bind method for DAGMonad (allow run to be binded to airflow Dag)
-    - [ ] (outside) Design ReturnObj for DAGMonad: 
+    - [ ] (outside) Design ReturnObj for DAGMonad:
         - [ ] It spill out dag_task so that they can be connected to the next task
         - [ ] It has `table_unit` property & `set_table_unit` method
     - [ ] (outside) `build` method of `Group` monad should takes tasks as input to be warpped into the input_objs
-    - [ ] (inside) Step 1: Assert that the TableUnit(s) in the "input_objs" (ReturnObjs) is the same as self.input_tables 
-    - [ ] (inside) Step 2: Send the tasks in the "input_objs" to `build` method 
-    - [ ] (inside) Step 3: Take the output tasks returns from `build` and wrap them into ReturnObj(s) 
+    - [ ] (inside) Step 1: Assert that the TableUnit(s) in the "input_objs" (ReturnObjs) is the same as self.input_tables
+    - [ ] (inside) Step 2: Send the tasks in the "input_objs" to `build` method
+    - [ ] (inside) Step 3: Take the output tasks returns from `build` and wrap them into ReturnObj(s)
     - [ ] (inside) Step 4: Assert the count of output tasks is the same as that of self.output_tables
     - [ ] (inside) Step 5: Add self.output_tables into the ReturnObj(s) by its `set_table_unit` method
 """
-import inspect 
+import inspect
 import traceback
 import time
 import abc
-import setting
 from functools import wraps
+import setting
 from monad import Monad
+
 
 class NestedMonad(Monad):
     def __init__(self):
         super().__init__()
         self.__setup_operations()
-    
+
     def __setup_operations(self):
         for func_name in self.operations.keys():
             func = self.operations[func_name]
@@ -50,7 +51,7 @@ class NestedMonad(Monad):
     @abc.abstractmethod
     def run(self, *args, **kargs):
         raise NotImplementedError
-        
+
     def decorator(self, orig_func):
         """The decorator that bind into the function"""
         if isinstance(orig_func, NestedMonad):
@@ -116,14 +117,18 @@ class NestedMonad(Monad):
 class SimpleGroup1:
     def run(self, a, b):
         return a + b
+
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
+
 
 class SimpleGroup2:
     def run(self, a, b):
         return a * b
+
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
+
 
 class DagProcess(NestedMonad):
 
@@ -133,25 +138,26 @@ class DagProcess(NestedMonad):
             'a_func': SimpleGroup1(),
             'b_func': SimpleGroup2(),
         }
-    
+
     def run(self, a, b):
         c = self.a_func(a, b)
         d = self.b_func(a, b)
         return c, d
 
+
 class TopProcess(NestedMonad):
-        
-        
+
     @property
     def operations(self):
         return {
             'dag_process': DagProcess()
         }
-    
+
     def run(self, x, y, z, w):
         i1, i2 = self.dag_process(x, y)
         j1, j2 = self.dag_process(z, w)
         return i1, i2, j1, j2
+
 
 class SecondTopProcess(NestedMonad):
     @property
@@ -159,10 +165,11 @@ class SecondTopProcess(NestedMonad):
         return {
             'top_process': TopProcess()
         }
-    
+
     def run(self, x, y, z, w):
         a, b, c, d = self.top_process(x, y, z, w)
         return a, b, c, d
+
 
 if __name__ == '__main__':
     dag_monad = DagProcess()

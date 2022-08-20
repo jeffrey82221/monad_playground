@@ -1,7 +1,7 @@
 """
-A monad design pattern 
-that decorate the entire pipeline 
-such that all functions within it are 
+A monad design pattern
+that decorate the entire pipeline
+such that all functions within it are
 log enabled
 """
 import inspect
@@ -11,6 +11,7 @@ from functools import wraps
 import logging
 import setting
 from monad import Monad
+
 
 class LoggingMonad(Monad):
     @property
@@ -23,8 +24,8 @@ class LoggingMonad(Monad):
             def __init__(self, content):
                 self.content = content
         return ReturnObj
-    
-    def decorator(self, orig_func): 
+
+    def decorator(self, orig_func):
         '''decorator for saving input, output & elapased time of a function'''
         @wraps(orig_func)
         def wrapper(*args, **kwargs):
@@ -74,6 +75,7 @@ class LoggingMonad(Monad):
                 raise exception
         return wrapper
 
+
 class CustomizeProcess(LoggingMonad):
     def run(self, a, b):
         p1 = self.sub_func_1_plus(a, b)
@@ -86,7 +88,7 @@ class CustomizeProcess(LoggingMonad):
     def sub_func_2_prod(self, a, b):
         return a * b
 
-    
+
 process = CustomizeProcess()
 
 if __name__ == '__main__':

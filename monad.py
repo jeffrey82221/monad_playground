@@ -51,15 +51,16 @@ class ClassMethodTransformer(ast.NodeTransformer):
             node,
         )
         return node_trans
-    
+
+
 class Monad:
-    
+
     @property
     def binded_run(self):
         """
         The binded `run` method:
 
-        Originally: 
+        Originally:
         def run(self, a, b, c):
             a = self.func_1(b, c)
             d = self.func_2(a)
@@ -71,15 +72,18 @@ class Monad:
             d = self.bind(self.func_2)(a)
             return a, d
         """
-        self.__parse_main_func(self.run, decoration='bind', target_func_name='binded_run_real')
+        self.__parse_main_func(
+            self.run,
+            decoration='bind',
+            target_func_name='binded_run_real')
         return self.binded_run_real
 
     @property
     def decorated_run(self):
         """
         The decorated `run` method:
-        
-        Originally: 
+
+        Originally:
         def run(self, a, b, c):
             a = self.func_1(b, c)
             d = self.func_2(a)
@@ -91,7 +95,10 @@ class Monad:
             d = self.decorator(self.func_2)(a)
             return a, d
         """
-        self.__parse_main_func(self.run, decoration='decorator', target_func_name='decorated_run_real')
+        self.__parse_main_func(
+            self.run,
+            decoration='decorator',
+            target_func_name='decorated_run_real')
         return self.decorated_run_real
 
     @abc.abstractmethod
@@ -99,26 +106,26 @@ class Monad:
         """
         The main function to be altered by monad
 
-        Originally: 
+        Originally:
         def run(self, a, b, c):
             a = self.func_1(b, c)
             d = self.func_2(a)
             return a, d
 
         Becomes:
-        1) 
+        1)
         def binded_run(self, a, b, c):
             a = self.bind(self.func_1)(b, c)
             d = self.bind(self.func_2)(a)
             return a, d
-        2) 
+        2)
         def decorated_run(self, a, b, c):
             a = self.decorator(self.func_1)(b, c)
             d = self.decorator(self.func_2)(a)
             return a, d
         """
         raise NotImplementedError()
-        
+
     @property
     @abc.abstractmethod
     def return_cls(self):
@@ -130,12 +137,12 @@ class Monad:
             def __init__(self, content):
                 self.content = content
         return ReturnObj
-    
+
     @abc.abstractmethod
     def decorator(self, orig_func):
         """The decorator that bind into the function"""
         return orig_func
-        
+
     def bind(self, orig_func):
         '''decorator to be bind to the `run` function, designed in monad pattern'''
         @wraps(orig_func)
@@ -144,11 +151,12 @@ class Monad:
             function warped by bind
             """
             # extract content from the return object
-            args = [a.content for a in args] 
-            kargs = dict([(key, value.content) for key, value in kwargs.items()])
+            args = [a.content for a in args]
+            kargs = dict([(key, value.content)
+                         for key, value in kwargs.items()])
             # adopt the original function to content
             result = self.decorator(orig_func)(*args, **kargs)
-            # encapsulate content into the return object 
+            # encapsulate content into the return object
             if isinstance(result, list):
                 return [self.return_cls(x) for x in result]
             elif isinstance(result, tuple):
@@ -156,8 +164,9 @@ class Monad:
             else:
                 return self.return_cls(result)
         return wrapper_of_bind
-    
-    def __parse_main_func(self, func: Callable, decoration: str, target_func_name: str) -> None:
+
+    def __parse_main_func(self, func: Callable, decoration: str,
+                          target_func_name: str) -> None:
         """Parse `run` and construct the corresponding target
         function `target_func_name` as new class method.
 
@@ -170,9 +179,10 @@ class Monad:
         lines = inspect.getsourcelines(func)[0]
         main_func_str = dedent("".join(lines))
         main_func_node = ast.parse(main_func_str).body[0]
-        
+
         # Construct `target_func_name` function node
-        target_main_func_node = self.__gen_target_main_func_node(main_func_node, decoration, target_func_name)
+        target_main_func_node = self.__gen_target_main_func_node(
+            main_func_node, decoration, target_func_name)
 
         # Bind `target_func_name` as class method
         target_main_func_str = astunparse.unparse(target_main_func_node)
@@ -196,7 +206,8 @@ class Monad:
         cls_method_traformer = ClassMethodTransformer(decoration=decoration)
         target_main_func_node = deepcopy(main_func_node)
         target_main_func_node.name = target_func_name
-        target_main_func_node = cls_method_traformer.visit(target_main_func_node)
+        target_main_func_node = cls_method_traformer.visit(
+            target_main_func_node)
 
         # Remove function annotation from target_main_func
         for i, arg in enumerate(target_main_func_node.args.args):
@@ -204,4 +215,3 @@ class Monad:
         target_main_func_node.returns = None
 
         return target_main_func_node
-

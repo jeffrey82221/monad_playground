@@ -96,9 +96,10 @@ class CustomizeProcess:
         lines = inspect.getsourcelines(func)[0]
         main_func_str = dedent("".join(lines))
         main_func_node = ast.parse(main_func_str).body[0]
-        
+
         # Construct `target_main_func` function node
-        target_main_func_node = self.__gen_target_main_func_node(main_func_node)
+        target_main_func_node = self.__gen_target_main_func_node(
+            main_func_node)
 
         # Bind `target_main_func` as class method
         target_main_func_str = astunparse.unparse(target_main_func_node)
@@ -118,7 +119,8 @@ class CustomizeProcess:
         """
         target_main_func_node = deepcopy(main_func_node)
         target_main_func_node.name = "target_main_func"
-        target_main_func_node = self.__cls_method_trafo.visit(target_main_func_node)
+        target_main_func_node = self.__cls_method_trafo.visit(
+            target_main_func_node)
 
         # Remove function annotation from target_main_func
         for i, arg in enumerate(target_main_func_node.args.args):
@@ -127,7 +129,7 @@ class CustomizeProcess:
 
         return target_main_func_node
 
-    
+
 if __name__ == '__main__':
     c = CustomizeProcess()
     print(c.target_main_func)

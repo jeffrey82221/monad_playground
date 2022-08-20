@@ -1,7 +1,7 @@
 """
-A monad design pattern 
-that decorate the entire pipeline 
-such that all functions within it are 
+A monad design pattern
+that decorate the entire pipeline
+such that all functions within it are
 log enabled
 """
 import pandas as pd
@@ -9,17 +9,19 @@ import uuid
 import setting
 from monad import Monad
 
+
 def create_dummy_df():
-    df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
-    df = df.append({'Name' : 'Ankit', 'Articles' : 97, 'Improved' : 2200},
-            ignore_index = True)
+    df = pd.DataFrame(columns=['Name', 'Articles', 'Improved'])
+    df = df.append({'Name': 'Ankit', 'Articles': 97, 'Improved': 2200},
+                   ignore_index=True)
 
-    df = df.append({'Name' : 'Aishwary', 'Articles' : 30, 'Improved' : 50},
-            ignore_index = True)
+    df = df.append({'Name': 'Aishwary', 'Articles': 30, 'Improved': 50},
+                   ignore_index=True)
 
-    df = df.append({'Name' : 'yash', 'Articles' : 17, 'Improved' : 220},
-          ignore_index = True)
+    df = df.append({'Name': 'yash', 'Articles': 17, 'Improved': 220},
+                   ignore_index=True)
     return df
+
 
 class PandasMonad(Monad):
     @property
@@ -33,15 +35,15 @@ class PandasMonad(Monad):
                 self.__uuid_str = str(uuid.uuid4())
                 content.to_parquet(f'tmp/{self.__uuid_str}.parquet')
                 print('save to parquet')
-            
+
             @property
             def content(self):
                 print('read from parquet')
                 # remove parquet
                 return pd.read_parquet(f'tmp/{self.__uuid_str}.parquet')
-            
+
         return ReturnObj
-    
+
 
 class PDProcess(PandasMonad):
     def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
@@ -55,7 +57,8 @@ class PDProcess(PandasMonad):
 
     def reset_index(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.reset_index()
-    
+
+
 process = PDProcess()
 
 if __name__ == '__main__':

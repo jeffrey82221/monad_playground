@@ -1,32 +1,41 @@
 from typing import Tuple
 from group import GroupMonad
 import pandas as pd
+
+
 class GroupProcess(GroupMonad):
-    def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def run(self, df1: pd.DataFrame,
+            df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         df_big, df_m = self.append_df(df1, df2)
         df_reset = self.reset_index(df_big)
         return df_reset, df_m
 
-    def append_df(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def append_df(self, df1: pd.DataFrame,
+                  df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         result = pd.concat([df1, df2])
         return result, df1
 
     def reset_index(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.reset_index()
-    
+
+
 class DagProcess:
     def __init__(self):
         self.pd_process_1 = GroupProcess('process_1').run
         self.go = GroupProcess('process_2')
-    def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+    def run(self, df1: pd.DataFrame,
+            df2: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         df_o1 = self.pd_process_1(df1, df2)
         df_o2 = self.pd_process_1(df1, df2)
         return df_o1, df_o2
+
     def pd_process_2(self, d1: pd.DataFrame, d2: pd.DataFrame) -> pd.DataFrame:
         return self.go.run(d1, d2)
 
+
 """
-TODO: 
+TODO:
 
 class DagProcess:
     def __init__(self):
@@ -39,7 +48,7 @@ class DagProcess:
     def pd_process_2(self, d1: TableUnit, d2: TableUnit) -> TableUnit:
         return self.go.run(d1, d2)
 
->> 
+>>
 
 class DagProcess:
     def __init__(self):
@@ -52,36 +61,37 @@ class DagProcess:
     def pd_process_2(self, d1: TableUnit, d2: TableUnit) -> TableUnit:
         return self.go.run(d1, d2)
 
->> 
+>>
 
 DagProcess().execute() # execute on aicloud (single pod)
-DagProcess('process_x', dag) # a dag on airflow 
+DagProcess('process_x', dag) # a dag on airflow
 
-Questions - what should the features of dag monad be? 
+Questions - what should the features of dag monad be?
 
-1. DAG connecting: 
+1. DAG connecting:
  - 1.1. Checking that the input table units match with the inputs defined in the GroupProcess
  - 1.2. Connecting the task_group of group process to the ancestor task_group(s)
  - 1.3. A `main_task` which return a `task_group` containing all `task_groups`(s) (more easily extended with additional task)
-2. Local Run; 
- - 2.1. Append the execution unit of each binded method and run them one by one in a `run_locally` method 
+2. Local Run;
+ - 2.1. Append the execution unit of each binded method and run them one by one in a `run_locally` method
  - 2.2. Add logging of start & finish for every execution of GroupProcess
 3. Defining of input & output in TableUnit
-4. Allow the airflow task of a particular output to be selected to later connection 
- 
+4. Allow the airflow task of a particular output to be selected to later connection
+
 
 """
 
+
 def create_dummy_df():
-    df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
-    df = df.append({'Name' : 'Ankit', 'Articles' : 97, 'Improved' : 2200},
-            ignore_index = True)
+    df = pd.DataFrame(columns=['Name', 'Articles', 'Improved'])
+    df = df.append({'Name': 'Ankit', 'Articles': 97, 'Improved': 2200},
+                   ignore_index=True)
 
-    df = df.append({'Name' : 'Aishwary', 'Articles' : 30, 'Improved' : 50},
-            ignore_index = True)
+    df = df.append({'Name': 'Aishwary', 'Articles': 30, 'Improved': 50},
+                   ignore_index=True)
 
-    df = df.append({'Name' : 'yash', 'Articles' : 17, 'Improved' : 220},
-          ignore_index = True)
+    df = df.append({'Name': 'yash', 'Articles': 17, 'Improved': 220},
+                   ignore_index=True)
     return df
 
 
@@ -134,5 +144,3 @@ if __name__ == '__main__':
     print('#### DagMonad Demo ####')
     dag_process = DagProcess()
     print(dag_process.run(df, df))
-    
-    

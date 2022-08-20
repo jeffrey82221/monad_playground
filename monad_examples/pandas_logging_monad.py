@@ -1,7 +1,7 @@
 """
-A monad design pattern 
-that decorate the entire pipeline 
-such that all functions within it are 
+A monad design pattern
+that decorate the entire pipeline
+such that all functions within it are
 log enabled
 """
 import pandas as pd
@@ -13,17 +13,19 @@ import traceback
 import setting
 from monad import Monad
 
+
 def create_dummy_df():
-    df = pd.DataFrame(columns = ['Name', 'Articles', 'Improved'])
-    df = df.append({'Name' : 'Ankit', 'Articles' : 97, 'Improved' : 2200},
-            ignore_index = True)
+    df = pd.DataFrame(columns=['Name', 'Articles', 'Improved'])
+    df = df.append({'Name': 'Ankit', 'Articles': 97, 'Improved': 2200},
+                   ignore_index=True)
 
-    df = df.append({'Name' : 'Aishwary', 'Articles' : 30, 'Improved' : 50},
-            ignore_index = True)
+    df = df.append({'Name': 'Aishwary', 'Articles': 30, 'Improved': 50},
+                   ignore_index=True)
 
-    df = df.append({'Name' : 'yash', 'Articles' : 17, 'Improved' : 220},
-          ignore_index = True)
+    df = df.append({'Name': 'yash', 'Articles': 17, 'Improved': 220},
+                   ignore_index=True)
     return df
+
 
 class PandasMonad(Monad):
     @property
@@ -38,19 +40,19 @@ class PandasMonad(Monad):
                 self.__file_dir = f'tmp/{uuid_str}.parquet'
                 content.to_parquet(self.__file_dir)
                 print(f'save into {self.__file_dir}')
-            
+
             @property
             def content(self) -> pd.DataFrame:
                 print(f'load from {self.__file_dir}')
                 # remove parquet
                 return pd.read_parquet(self.__file_dir)
-            
+
         return ReturnObj
 
     def decorator(self, orig_func):
         return self.log_wrapping(orig_func)
 
-    def log_wrapping(self, orig_func): 
+    def log_wrapping(self, orig_func):
         '''decorator for saving input, output & elapased time of a function'''
         @wraps(orig_func)
         def wrapper(*args, **kwargs):
@@ -68,9 +70,15 @@ class PandasMonad(Monad):
                 success = False
             time_elapsed = time.time() - time_start
             cols_in_args = [','.join(a.columns) for a in args]
-            cols_in_kwargs = [key + ':' + ','.join(value.columns) for key, value in kwargs.items()]
+            cols_in_kwargs = [
+                key +
+                ':' +
+                ','.join(
+                    value.columns) for key,
+                value in kwargs.items()]
             table_size_in_args = [','.join(str(len(a))) for a in args]
-            table_size_in_kwargs = [key + ':' + ','.join(str(len(value))) for key, value in kwargs.items()]
+            table_size_in_kwargs = [
+                key + ':' + ','.join(str(len(value))) for key, value in kwargs.items()]
             if success:
                 if isinstance(out, list) or isinstance(out, tuple):
                     cols_in_out = [','.join(o.columns) for o in out]
@@ -116,7 +124,7 @@ class PandasMonad(Monad):
             else:
                 raise exception
         return wrapper
-    
+
 
 class PDProcess(PandasMonad):
     def run(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
@@ -130,7 +138,8 @@ class PDProcess(PandasMonad):
 
     def reset_index(self, df: pd.DataFrame) -> pd.DataFrame:
         return df.reset_index()
-    
+
+
 process = PDProcess()
 
 if __name__ == '__main__':
