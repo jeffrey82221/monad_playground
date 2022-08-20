@@ -114,25 +114,18 @@ class NestedMonad(Monad):
 
 
 class SimpleGroup1:
-    def __init__(self):
-        print('SimpleGroup1: init')
     def run(self, a, b):
         return a + b
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
 
 class SimpleGroup2:
-    def __init__(self):
-        print('SimpleGroup2: init')
     def run(self, a, b):
         return a * b
     def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
 
 class DagProcess(NestedMonad):
-    def __init__(self):
-        print('DagProcess: init')
-        super().__init__()
 
     @property
     def operations(self):
@@ -147,14 +140,10 @@ class DagProcess(NestedMonad):
         return c, d
 
 class TopProcess(NestedMonad):
-    def __init__(self):
-        print('TopProcess: init')
-        super().__init__()
         
         
     @property
     def operations(self):
-        print('init operations')
         return {
             'dag_process': DagProcess()
         }
@@ -176,12 +165,12 @@ class SecondTopProcess(NestedMonad):
         return a, b, c, d
 
 if __name__ == '__main__':
-    '''dag_monad = DagProcess()
+    dag_monad = DagProcess()
     ans = dag_monad.decorated_run(1, 2)
-    print('dag_monad result:', ans)'''
+    print('dag_monad result:', ans)
     top_monad = TopProcess()
     ans = top_monad.decorated_run(1, 2, 3, 4)
     print('top_monad result:', ans)
-    '''second_top_monad = SecondTopProcess()
+    second_top_monad = SecondTopProcess()
     ans = second_top_monad.run(1, 2, 3, 4)
-    print('second_top_monad result:', ans)'''
+    print('second_top_monad result:', ans)
