@@ -57,6 +57,7 @@ class Monad:
         self.__parse_main_func(self.run, decoration='bind', target_func_name='binded_run')
         self.__parse_main_func(self.run, decoration='decorator', target_func_name='decorated_run')
     
+
     @abc.abstractmethod
     def run(self, *args):
         """
@@ -139,6 +140,7 @@ class Monad:
 
         # Bind `target_func_name` as class method
         target_main_func_str = astunparse.unparse(target_main_func_node)
+        print(target_main_func_str)
         exec(target_main_func_str, globals())
         exec(f'Monad.{target_func_name} = {target_func_name}')
 

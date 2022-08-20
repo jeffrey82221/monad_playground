@@ -25,64 +25,39 @@ TODO:
     - [ ] (inside) Step 4: Assert the count of output tasks is the same as that of self.output_tables
     - [ ] (inside) Step 5: Add self.output_tables into the ReturnObj(s) by its `set_table_unit` method
 """
-import pandas as pd
-import uuid
 import inspect 
 import traceback
 import time
+import abc
 import setting
 from functools import wraps
 from monad import Monad
 
-
-class TestClass:
+class NestedMonad(Monad):
     def __init__(self):
-        pass
-    def run(self, a, b):
-        return a + b
-    def __call__(self, *args, **kwargs):
-        return self.run(*args, **kwargs)
-
-class TestClass2:
-    def __init__(self):
-        pass
-    def run(self, a, b):
-        return a * b
-    def __call__(self, *args, **kwargs):
-        return self.run(*args, **kwargs)
-
-class DagMonad(Monad):
-    @property
-    def operations(self):
-        return {
-            'a_func': TestClass(),
-            'b_func': TestClass2(),
-        }
+        super().__init__()
+        self.__setup_operations()
     
-    @property
-    def a_func(self):
-        return self.operations['a_func']
+    def __setup_operations(self):
+        for func_name in self.operations.keys():
+            func = self.operations[func_name]
+            exec(f'self.{func_name} = func')
 
-    @property
-    def b_func(self):
-        return self.operations['b_func']
+    @abc.abstractproperty
+    def operations(self):
+        raise NotImplementedError
 
-    def run(self, a, b):
-        c = self.a_func(a, b)
-        d = self.b_func(a, b)
-        return c, d
-
+    @abc.abstractmethod
+    def run(self, *args, **kargs):
+        raise NotImplementedError
+        
     def decorator(self, orig_func):
         """The decorator that bind into the function"""
-        f = self.__pipe_connect_decoration(orig_func)
-        f = self.__logging_decoration(f)
+        if isinstance(orig_func, NestedMonad):
+            f = self.__logging_decoration(orig_func.decorated_run)
+        else:
+            f = self.__logging_decoration(orig_func.run)
         return f
-
-    def __pipe_connect_decoration(self, orig_func):
-        @wraps(orig_func)
-        def pipe_connect_wrapper(*args, **kwargs):
-            return orig_func(*args, **kwargs)
-        return pipe_connect_wrapper
 
     def __logging_decoration(self, orig_func):
         '''decorator for saving input, output & elapased time of a function'''
@@ -134,8 +109,79 @@ class DagMonad(Monad):
                 raise exception
         return logging_wrapper
 
+    def __call__(self, *args, **kwargs):
+        return self.run(*args, **kwargs)
+
+
+class SimpleGroup1:
+    def __init__(self):
+        print('SimpleGroup1: init')
+    def run(self, a, b):
+        return a + b
+    def __call__(self, *args, **kwargs):
+        return self.run(*args, **kwargs)
+
+class SimpleGroup2:
+    def __init__(self):
+        print('SimpleGroup2: init')
+    def run(self, a, b):
+        return a * b
+    def __call__(self, *args, **kwargs):
+        return self.run(*args, **kwargs)
+
+class DagProcess(NestedMonad):
+    def __init__(self):
+        print('DagProcess: init')
+        super().__init__()
+
+    @property
+    def operations(self):
+        return {
+            'a_func': SimpleGroup1(),
+            'b_func': SimpleGroup2(),
+        }
+    
+    def run(self, a, b):
+        c = self.a_func(a, b)
+        d = self.b_func(a, b)
+        return c, d
+
+class TopProcess(NestedMonad):
+    def __init__(self):
+        print('TopProcess: init')
+        super().__init__()
+        
+        
+    @property
+    def operations(self):
+        print('init operations')
+        return {
+            'dag_process': DagProcess()
+        }
+    
+    def run(self, x, y, z, w):
+        i1, i2 = self.dag_process(x, y)
+        j1, j2 = self.dag_process(z, w)
+        return i1, i2, j1, j2
+
+class SecondTopProcess(NestedMonad):
+    @property
+    def operations(self):
+        return {
+            'top_process': TopProcess()
+        }
+    
+    def run(self, x, y, z, w):
+        a, b, c, d = self.top_process(x, y, z, w)
+        return a, b, c, d
 
 if __name__ == '__main__':
-    dag_monad = DagMonad()
-    ans = dag_monad.run(1, 2)
-    print('ans:', ans)
+    '''dag_monad = DagProcess()
+    ans = dag_monad.decorated_run(1, 2)
+    print('dag_monad result:', ans)'''
+    top_monad = TopProcess()
+    ans = top_monad.decorated_run(1, 2, 3, 4)
+    print('top_monad result:', ans)
+    '''second_top_monad = SecondTopProcess()
+    ans = second_top_monad.run(1, 2, 3, 4)
+    print('second_top_monad result:', ans)'''
