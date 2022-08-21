@@ -6,7 +6,7 @@ import inspect
 from copy import deepcopy
 from textwrap import dedent
 from typing import Callable
-import astunparse
+from core import astunparse
 
 
 class ClassMethodTransformer(ast.NodeTransformer):
@@ -186,7 +186,6 @@ class Monad:
 
         # Bind `target_func_name` as class method
         target_main_func_str = astunparse.unparse(target_main_func_node)
-        print(target_main_func_str)
         exec(target_main_func_str, globals())
         exec(f'Monad.{target_func_name} = {target_func_name}')
 
