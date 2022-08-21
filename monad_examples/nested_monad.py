@@ -146,7 +146,6 @@ class DagProcess(NestedMonad):
 
 
 class TopProcess(NestedMonad):
-
     @property
     def operations(self):
         return {
@@ -163,12 +162,14 @@ class SecondTopProcess(NestedMonad):
     @property
     def operations(self):
         return {
-            'top_process': TopProcess()
+            'top_process': TopProcess(),
+            'dag_process': DagProcess()
         }
 
     def run(self, x, y, z, w):
         a, b, c, d = self.top_process(x, y, z, w)
-        return a, b, c, d
+        e, f = self.dag_process(x, y)
+        return a, b, c, d, e, f
 
 
 if __name__ == '__main__':
