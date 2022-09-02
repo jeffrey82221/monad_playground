@@ -22,12 +22,12 @@ class AorB(type):
     """ A Metaclass which decorates all the methods of the
         subclass using call_counter as the decorator
     """
-
+    """
     @staticmethod
     def some_decorator(func):
-        """ Decorator for counting the number of function
+        '''Decorator for counting the number of function
             or method calls to the function or method func
-        """
+        '''
         def helper(*args, **kwargs):
             helper.calls += 1
             return func(*args, **kwargs)
@@ -35,7 +35,8 @@ class AorB(type):
         helper.__name__ = func.__name__
 
         return helper
-
+    """
+    
     def __new__(cls, clsname, superclasses, attributedict):
         """
         This is like a decorator to a class
