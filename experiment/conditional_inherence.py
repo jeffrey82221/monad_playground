@@ -27,6 +27,7 @@ class AorB(type):
     def some_decorator(func):
         '''Decorator for counting the number of function
             or method calls to the function or method func
+            
         '''
         def helper(*args, **kwargs):
             helper.calls += 1
@@ -36,7 +37,7 @@ class AorB(type):
 
         return helper
     """
-    
+
     def __new__(cls, clsname, superclasses, attributedict):
         """
         This is like a decorator to a class
@@ -45,7 +46,7 @@ class AorB(type):
         print('clsname', clsname)
         print('superclasses', superclasses)
         print('attributedict', attributedict)
-        switch_label = attributedict['switch'](None)
+        switch_label = attributedict['mode']('self')
         if switch_label == 'A':
             # Only A as superclass
             superclasses = (A, )
@@ -59,7 +60,7 @@ class C(metaclass=AorB):
     def c_method(self):
         print('c method')
 
-    def switch(self):
+    def mode(self):
         return 'B'
 
 
@@ -67,7 +68,7 @@ class D(metaclass=AorB):
     def d_method(self):
         print('d method')
 
-    def switch(self):
+    def mode(self):
         return 'A'
 
 
