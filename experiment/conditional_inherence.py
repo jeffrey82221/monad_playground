@@ -1,3 +1,6 @@
+from ast import Not
+
+
 class A(object):
 
     def label_method(self):
@@ -44,38 +47,60 @@ class AorB(type):
         """
         print('cls:', cls)
         print('clsname', clsname)
-        print('superclasses', superclasses)
-        print('attributedict', attributedict)
-        switch_label = attributedict['mode']('self')
-        if switch_label == 'A':
-            # Only A as superclass
-            superclasses = (A, )
-        elif switch_label == 'B':
-            # Only B as superclass
-            superclasses = (B, )
-        return type.__new__(cls, clsname, superclasses, attributedict)
+        print('superclasses before', superclasses)
+        # print('attributedict', attributedict)
+        if 'mode' in attributedict and clsname != 'BaseC':
+            switch_label = attributedict['mode']('self')
+            print('switch_label', switch_label)
+            if switch_label == 'A':
+                # Only A as superclass
+                superclasses = list(superclasses)
+                superclasses.append(A)
+                superclasses = tuple(superclasses)
+            elif switch_label == 'B':
+                # Only B as superclass
+                superclasses = list(superclasses)
+                superclasses.append(B)
+                superclasses = tuple(superclasses)
+            # apply mode attribute to superclasses
+        print('superclasses after:', superclasses)
+        return super().__new__(cls, clsname, superclasses, attributedict)
 
+print('BaseC ################')
+class BaseC(metaclass=AorB):
+    def c_method(self):
+        print('base c')
 
-class C(metaclass=AorB):
+    def mode(self):
+        pass
+
+print('C ################')
+class C(BaseC):
     def c_method(self):
         print('c method')
 
     def mode(self):
         return 'B'
 
-
-class D(metaclass=AorB):
+print('D ################')
+class D(BaseC):
     def d_method(self):
         print('d method')
-
     def mode(self):
         return 'A'
 
+print('E ################')
+class E(D):
+    def mode(self):
+        return 'B'
+
+
 
 if __name__ == '__main__':
-    c = C()
-    c.label_method()
-    c.c_method()
-    d = D()
-    d.label_method()
-    d.d_method()
+    # c = C()
+    print('C mro:', C.__mro__)
+    # d = D()
+    print('D mro:', D.__mro__)
+    # d.d_method()
+    # d.c_method()
+    print('E mro:', E.__mro__)
