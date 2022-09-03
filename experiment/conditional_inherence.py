@@ -49,7 +49,7 @@ class AorB(type):
         print('clsname', clsname)
         print('superclasses before', superclasses)
         # print('attributedict', attributedict)
-        if 'mode' in attributedict and clsname != 'BaseC':
+        if 'mode' in attributedict and 'AorBBase' in [c.__name__ for c in list(superclasses)]:
             switch_label = attributedict['mode']('self')
             print('switch_label', switch_label)
             if switch_label == 'A':
@@ -67,7 +67,7 @@ class AorB(type):
         return super().__new__(cls, clsname, superclasses, attributedict)
 
 print('BaseC ################')
-class BaseC(metaclass=AorB):
+class AorBBase(metaclass=AorB):
     def c_method(self):
         print('base c')
 
@@ -75,32 +75,34 @@ class BaseC(metaclass=AorB):
         pass
 
 print('C ################')
-class C(BaseC):
+class CinhA(AorBBase):
     def c_method(self):
         print('c method')
 
     def mode(self):
-        return 'B'
+        return 'A'
 
 print('D ################')
-class D(BaseC):
+class DinhB(AorBBase):
     def d_method(self):
         print('d method')
     def mode(self):
-        return 'A'
+        return 'B'
 
 print('E ################')
-class E(D):
+class E(DinhB):
+    # NOTE: mode in this level should not effect the selection of inheritance 
+    # at the level of class inherit BaseC
     def mode(self):
-        return 'B'
+        return 'A'
 
 
 
 if __name__ == '__main__':
     # c = C()
-    print('C mro:', C.__mro__)
+    print('CinhA mro:', CinhA.__mro__)
     # d = D()
-    print('D mro:', D.__mro__)
+    print('DinhB mro:', DinhB.__mro__)
     # d.d_method()
     # d.c_method()
     print('E mro:', E.__mro__)
