@@ -19,16 +19,19 @@ PROBLEMS:
 from typing import Tuple
 import ray
 from ray_monad import RayMonad
+import time
 
 
 class PDProcess(RayMonad):
     def run(self, x: int, y: int) -> Tuple[int, int]:
         a = self.plus(x, y)
+        c = self.plus(x, y)
         b = self.double(a)
         a, b = self.passing(a, b)
-        return a, b
+        return a, b, c
 
     def plus(self, x: int, y: int) -> int:
+        time.sleep(5)
         return x + y
 
     def double(self, s: int) -> int:
@@ -42,5 +45,13 @@ ray.init()
 process = PDProcess()
 
 if __name__ == '__main__':
+    print('start normal run')
+    start_time = time.time()
+    ans = process.run(2, 3)
+    print(ans)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    print('start ray run')
+    start_time = time.time()
     ans = process.execute(2, 3)
     print(ans)
+    print("--- %s seconds ---" % (time.time() - start_time))
