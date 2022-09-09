@@ -2,19 +2,19 @@
 A monad design pattern
 that decorate the entire pipeline
 such that all functions within it are
-connect to a ray dag! 
+connect to a ray dag!
 
-PROBLEMS: 
+PROBLEMS:
 
-- [ ] input_node represent only a single input 
-    - [ ] need to combine *args & **kargs into one input 
-    - [ ] need remote function that extract *args and **kargs and compose 
-        *args and **kargs of `ReturnClass` where the contents are the  
-        outputs of the extract method (bind). 
-    - [ ] in the wrapper of bind, extract content from *args and **kargs 
-        and send them to the bined-function (make sure to make the function a remote function) 
-    - [ ] extract output (which is a ray binded result) and dispatch it into 
-        multiple output according to the output type hint of the bined function. 
+- [ ] input_node represent only a single input
+    - [ ] need to combine *args & **kargs into one input
+    - [ ] need remote function that extract *args and **kargs and compose
+        *args and **kargs of `ReturnClass` where the contents are the
+        outputs of the extract method (bind).
+    - [ ] in the wrapper of bind, extract content from *args and **kargs
+        and send them to the bined-function (make sure to make the function a remote function)
+    - [ ] extract output (which is a ray binded result) and dispatch it into
+        multiple output according to the output type hint of the bined function.
 """
 from typing import Optional, Tuple
 import ray
@@ -24,6 +24,7 @@ from ray.dag.function_node import FunctionNode
 import inspect
 from monad import Monad
 
+
 class ReturnObj:
     def __init__(self, content: FunctionNode):
         self.__content = content
@@ -32,8 +33,10 @@ class ReturnObj:
     def content(self) -> FunctionNode:
         return self.__content
 
+
 @ray.remote
-def dispatch_input(whole_input: dict, args_ind:Optional[int]=None, kwargs_key:Optional[str]=None):
+def dispatch_input(whole_input: dict,
+                   args_ind: Optional[int] = None, kwargs_key: Optional[str] = None):
     assert args_ind is not None or kwargs_key is not None
     if args_ind is not None:
         return whole_input['args'][args_ind]
@@ -42,14 +45,17 @@ def dispatch_input(whole_input: dict, args_ind:Optional[int]=None, kwargs_key:Op
     else:
         raise ValueError('either args_ind or kwargs_key should be probided')
 
+
 @ray.remote
 def dispatch_output(whole_output, index: int):
     return whole_output[index]
 
+
 @ray.remote
 def aggregate_output(*args):
     return args
-    
+
+
 class RayMonad(Monad):
 
     def __init__(self):
@@ -62,7 +68,7 @@ class RayMonad(Monad):
         NOTE: a content property must be included in the return object
         """
         return ReturnObj
-        
+
     def bind(self, orig_func):
         '''decorator to be bind to the `run` function, designed in monad pattern'''
         @wraps(orig_func)
@@ -75,6 +81,7 @@ class RayMonad(Monad):
             kargs = dict([(key, value.content)
                          for key, value in kwargs.items()])
             # adopt the original function to content
+
             @ray.remote
             def remote_func(*args, **kargs):
                 return orig_func(*args, **kargs)
@@ -83,9 +90,11 @@ class RayMonad(Monad):
             return_str = str(orig_func.__annotations__['return'])
             if 'typing.Tuple' in return_str:
                 returning_items = []
-                return_cnt = len(return_str.split('typing.Tuple')[1].split(','))
+                return_cnt = len(
+                    return_str.split('typing.Tuple')[1].split(','))
                 for i in range(return_cnt):
-                    returning_items.append(dispatch_output.bind(result_node, i))
+                    returning_items.append(
+                        dispatch_output.bind(result_node, i))
                 return tuple([self.return_cls(x) for x in returning_items])
             else:
                 return self.return_cls(result_node)
@@ -95,7 +104,8 @@ class RayMonad(Monad):
         args_cnt = 0
         kwargs_cnt = 0
         kwargs_names = []
-        for name, parameter in dict(inspect.signature(self.run).parameters).items():            
+        for name, parameter in dict(
+                inspect.signature(self.run).parameters).items():
             if parameter.default == inspect._empty:
                 args_cnt += 1
             else:
@@ -112,13 +122,14 @@ class RayMonad(Monad):
                 kwargs[kwarg_name] = self.return_cls(kwarg)
             return_objs = self.binded_run(*args, **kwargs)
             if isinstance(return_objs, list):
-                output_node = aggregate_output.bind(*[o.content for o in return_objs])
+                output_node = aggregate_output.bind(
+                    *[o.content for o in return_objs])
             elif isinstance(return_objs, tuple):
-                output_node = aggregate_output.bind(*[o.content for o in list(return_objs)])
+                output_node = aggregate_output.bind(
+                    *[o.content for o in list(return_objs)])
             else:
                 output_node = return_objs.content
         return output_node
-
 
     def execute(self, *args, **kwargs):
         dag = self.build()
@@ -128,4 +139,3 @@ class RayMonad(Monad):
                 'kwargs': kwargs
             }
         ))
-
