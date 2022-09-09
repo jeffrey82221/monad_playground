@@ -6,14 +6,14 @@ connect to a ray dag!
 
 PROBLEMS:
 
-- [ ] input_node represent only a single input
-    - [ ] need to combine *args & **kargs into one input
-    - [ ] need remote function that extract *args and **kargs and compose
+- [X] input_node represent only a single input
+    - [X] need to combine *args & **kargs into one input
+    - [X] need remote function that extract *args and **kargs and compose
         *args and **kargs of `ReturnClass` where the contents are the
         outputs of the extract method (bind).
-    - [ ] in the wrapper of bind, extract content from *args and **kargs
+    - [X] in the wrapper of bind, extract content from *args and **kargs
         and send them to the bined-function (make sure to make the function a remote function)
-    - [ ] extract output (which is a ray binded result) and dispatch it into
+    - [X] extract output (which is a ray binded result) and dispatch it into
         multiple output according to the output type hint of the bined function.
 """
 from typing import Optional, Tuple
