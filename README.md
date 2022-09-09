@@ -7,7 +7,9 @@ Experiment with some application of Monad design pattern
 - [ ] 研究codecarbon tracking_mode='machine'，是否只檢測單一個container的狀態
 
 # TODO:
-- [ ] creat a monad that bind to ray.serve DAG.
+- [ ] Creat a monad that bind to ray.serve DAG.
     - [ ] Start with a little playground of ray.serve DAG. (here: https://github.com/jeffrey82221/ray_playground) 
     - [ ] Come up with a connection scheme of monad to the DAG.
     - [ ] Create a basic monad and the nested monad class.
+- [ ] Using our framework to decompose a model into smaller parts for serving 
+
