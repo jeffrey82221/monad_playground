@@ -8,6 +8,6 @@ Experiment with some application of Monad design pattern
 
 # TODO:
 - [ ] creat a monad that bind to ray.serve DAG.
-    - [ ] Start with a little playground of ray.serve DAG.
+    - [ ] Start with a little playground of ray.serve DAG. (here: https://github.com/jeffrey82221/ray_playground) 
     - [ ] Come up with a connection scheme of monad to the DAG.
     - [ ] Create a basic monad and the nested monad class.
