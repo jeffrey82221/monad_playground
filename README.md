@@ -25,3 +25,11 @@ Experiment with some application of Monad design pattern
     - [ ] Make speed up profiling on the new monad. 
 
 
+# Future: 
+
+## potential extension survey: 
+- [ ] python package with DAG: 
+    - [ ] airflow 
+    - [ ] kubeflow 
+    - [ ] ploomber
+    - [ ] dflow: https://pypi.org/project/pydflow/
