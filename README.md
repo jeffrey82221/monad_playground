@@ -33,3 +33,4 @@ Experiment with some application of Monad design pattern
     - [ ] kubeflow 
     - [ ] ploomber
     - [ ] dflow: https://pypi.org/project/pydflow/
+    - [ ] lightflow: https://australiansynchrotron.github.io/lightflow/
