@@ -21,11 +21,11 @@ Experiment with some application of Monad design pattern
 
 ## ParaDag Monad 
 - [ ] Create a monad that leverage the simple Multi-threading execution mode of paradag to speed up IO bounded workflow. 
-    - [ ] Start with a paradag playground 
-        - [ ] experiment with the topology sorting machenism 
-        - [ ] experiment with the multi-thread execution mechanism 
-
-    - [ ] Come up with a connection scheme of monad to the DAG. 
+    - [X] Start with a paradag playground : https://github.com/jeffrey82221/paradag_playground
+        - [X] experiment with the topology sorting machenism 
+        - [X] experiment with the multi-thread execution mechanism 
+    - [ ] Build a remote Ray API that can execute any serverless python function: https://github.com/jeffrey82221/fastapi_playground
+    - [ ] Come up with a connection scheme of monad to the DAG & to the execution API service. 
     - [ ] Create a basic monad and the nested monad class. 
 
 ## TorchMonad
