@@ -18,20 +18,20 @@ TODO:
             'output_paths': output_paths,
             'is_class_method': True/False
         }
-- [ ] Move here the Monad class, which automatically decorate `run` method as `binded_run`
-- [ ] Build a decorator (bind) that takes a function as input, and adapt it to the remote
+- [X] Move here the Monad class, which automatically decorate `run` method as `binded_run`
+- [X] Build a decorator (bind) that takes a function as input, and adapt it to the remote
 API
-    - [ ] It determine python_func via the source code of the func
-    - [ ] It determine args_paths & kwargs_paths via get_path of the args & kwargs ReturnObj
-    - [ ] It determine output_paths via the pre-build ReturnObjs' get_path
-        - [ ] ReturnObjs of output is build according to the Return __annotations__ of the func
+    - [X] It determine python_func via the source code of the func
+    - [X] It determine args_paths & kwargs_paths via get_path of the args & kwargs ReturnObj
+    - [X] It determine output_paths via the pre-build ReturnObjs' get_path
+        - [X] ReturnObjs of output is build according to the Return __annotations__ of the func
 """
 
 from functools import wraps
 import inspect
-from textwrap import dedent
 import uuid
 from typing import Tuple
+import pandas as pd
 import setting
 from monad import Monad
 from monad_examples.remote_client.etl_api_caller import call_etl_api
@@ -46,13 +46,12 @@ class ReturnObj:
         self.file_name = str(uuid.uuid4())
 
 
-def remote_adapt(orig_func):
+def remote(orig_func):
     @wraps(orig_func)
     def wrapper(*args: ReturnObj, **kwargs: ReturnObj):
         input_info = inspect.getfullargspec(orig_func)
         if len(input_info.args) and input_info.args[0] == 'self':
             class_func = True
-            args = args[1:]
         else:
             class_func = False
         # extract args file names from args and kwargs ReturnObj
@@ -76,6 +75,8 @@ def remote_adapt(orig_func):
 
         outputs = [ReturnObj() for i in range(return_cnt)]
         output_file_names = [o.file_name for o in outputs]
+        # Run remotely
+        # TODO: [ ] extract this step onto the multithread dag executor
         call_etl_api(
             class_func,
             orig_func,
@@ -83,18 +84,72 @@ def remote_adapt(orig_func):
             dict(kwargs_tuples),
             output_file_names
         )
-        return outputs
+        if return_cnt == 0:
+            return None
+        elif return_cnt == 1:
+            return outputs[0]
+        else:
+            return outputs
 
         # return the Output return_objs
 
     return wrapper
 
 
+class RemoteMonad(Monad):
+    def bind(self, orig_func):
+        '''decorator to be bind to the `run` function, designed in monad pattern'''
+        @wraps(orig_func)
+        def wrapper_of_bind(*args, **kwargs):
+            """
+            function warped by bind
+            """
+            return remote(orig_func)(*args, **kwargs)
+        return wrapper_of_bind
+
+    def execute(self, *args, **kwargs):
+        # TODO:
+        # [ ] upload args and kwargs to remote machine
+        ans = self.binded_run(*args, **kwargs)
+        print('ans:', ans)
+        # [ ] download args and kwargs back from remote machine
+
+
+class CustomizedRemoteMonad(RemoteMonad):
+
+    def run(self) -> None:
+        dummy_df = self.create_dummy_df()
+        final_df = self.concat(dummy_df, dummy_df)
+        self.print_result(final_df)
+
+    def create_dummy_df(self) -> pd.DataFrame:
+        df = pd.DataFrame(columns=['Name', 'Articles', 'Improved'])
+        df = df.append({'Name': 'Ankit', 'Articles': 97, 'Improved': 2200},
+                       ignore_index=True)
+
+        df = df.append({'Name': 'Aishwary', 'Articles': 30, 'Improved': 50},
+                       ignore_index=True)
+
+        df = df.append({'Name': 'yash', 'Articles': 17, 'Improved': 220},
+                       ignore_index=True)
+        return df
+
+    def print_result(self, a: pd.DataFrame) -> None:
+        print(a)
+
+    def concat(self, a: pd.DataFrame, b: pd.DataFrame) -> pd.DataFrame:
+        result = pd.concat([a, b], axis=0)
+        return result
+
+
 def create_values() -> Tuple[int, float]:
     return 1, 0.5
 
 
-create_values = remote_adapt(create_values)
+create_values = remote(create_values)
 if __name__ == '__main__':
     ans = create_values()
     print('ans:', ans)
+
+    c = CustomizedRemoteMonad()
+    c.execute()
