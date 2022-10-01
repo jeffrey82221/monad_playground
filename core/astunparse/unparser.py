@@ -11,6 +11,7 @@ from six import StringIO
 # We unparse those infinities to INFSTR.
 INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
 
+
 def interleave(inter, f, seq):
     """Call f on each item in seq, calling inter() in between.
     """
@@ -24,12 +25,13 @@ def interleave(inter, f, seq):
             inter()
             f(x)
 
+
 class Unparser:
     """Methods in this class recursively traverse an AST and
     output source code for the abstract syntax; original formatting
     is disregarded. """
 
-    def __init__(self, tree, file = sys.stdout):
+    def __init__(self, tree, file=sys.stdout):
         """Unparser(tree, file=sys.stdout) -> None.
          Print the source for tree to file."""
         self.f = file
@@ -39,9 +41,9 @@ class Unparser:
         print("", file=self.f)
         self.f.flush()
 
-    def fill(self, text = ""):
+    def fill(self, text=""):
         "Indent a piece of text, according to the current indentation level"
-        self.f.write("\n"+"    "*self._indent + text)
+        self.f.write("\n" + "    " * self._indent + text)
 
     def write(self, text):
         "Append a piece of text to the current line."
@@ -62,9 +64,8 @@ class Unparser:
             for t in tree:
                 self.dispatch(t)
             return
-        meth = getattr(self, "_"+tree.__class__.__name__)
+        meth = getattr(self, "_" + tree.__class__.__name__)
         meth(tree)
-
 
     ############### Unparsing methods ######################
     # There should be one method per concrete grammar type #
@@ -122,7 +123,7 @@ class Unparser:
     def _AugAssign(self, t):
         self.fill()
         self.dispatch(t.target)
-        self.write(" "+self.binop[t.op.__class__.__name__]+"= ")
+        self.write(" " + self.binop[t.op.__class__.__name__] + "= ")
         self.dispatch(t.value)
 
     def _AnnAssign(self, t):
@@ -182,8 +183,10 @@ class Unparser:
             self.dispatch(t.dest)
             do_comma = True
         for e in t.values:
-            if do_comma:self.write(", ")
-            else:do_comma=True
+            if do_comma:
+                self.write(", ")
+            else:
+                do_comma = True
             self.dispatch(e)
         if not t.nl:
             self.write(",")
@@ -309,36 +312,44 @@ class Unparser:
         for deco in t.decorator_list:
             self.fill("@")
             self.dispatch(deco)
-        self.fill("class "+t.name)
+        self.fill("class " + t.name)
         if six.PY3:
             self.write("(")
             comma = False
             for e in t.bases:
-                if comma: self.write(", ")
-                else: comma = True
+                if comma:
+                    self.write(", ")
+                else:
+                    comma = True
                 self.dispatch(e)
             for e in t.keywords:
-                if comma: self.write(", ")
-                else: comma = True
+                if comma:
+                    self.write(", ")
+                else:
+                    comma = True
                 self.dispatch(e)
             if sys.version_info[:2] < (3, 5):
                 if t.starargs:
-                    if comma: self.write(", ")
-                    else: comma = True
+                    if comma:
+                        self.write(", ")
+                    else:
+                        comma = True
                     self.write("*")
                     self.dispatch(t.starargs)
                 if t.kwargs:
-                    if comma: self.write(", ")
-                    else: comma = True
+                    if comma:
+                        self.write(", ")
+                    else:
+                        comma = True
                     self.write("**")
                     self.dispatch(t.kwargs)
             self.write(")")
         elif t.bases:
-                self.write("(")
-                for a in t.bases:
-                    self.dispatch(a)
-                    self.write(", ")
-                self.write(")")
+            self.write("(")
+            for a in t.bases:
+                self.dispatch(a)
+                self.write(", ")
+            self.write(")")
         self.enter()
         self.dispatch(t.body)
         self.leave()
@@ -354,7 +365,7 @@ class Unparser:
         for deco in t.decorator_list:
             self.fill("@")
             self.dispatch(deco)
-        def_str = fill_suffix+" "+t.name + "("
+        def_str = fill_suffix + " " + t.name + "("
         self.fill(def_str)
         self.dispatch(t.args)
         self.write(")")
@@ -472,7 +483,8 @@ class Unparser:
             quote_types = ["'", '"', '"""', "'''"]
         for quote_type in quote_types:
             if quote_type not in v:
-                v = "{quote_type}{v}{quote_type}".format(quote_type=quote_type, v=v)
+                v = "{quote_type}{v}{quote_type}".format(
+                    quote_type=quote_type, v=v)
                 break
         else:
             v = repr(v)
@@ -543,9 +555,12 @@ class Unparser:
                 self._write_constant(value[0])
                 self.write(",")
             else:
-                interleave(lambda: self.write(", "), self._write_constant, value)
+                interleave(
+                    lambda: self.write(", "),
+                    self._write_constant,
+                    value)
             self.write(")")
-        elif value is Ellipsis: # instead of `...` for Py2 compatibility
+        elif value is Ellipsis:  # instead of `...` for Py2 compatibility
             self.write("...")
         else:
             if t.kind == "u":
@@ -557,7 +572,8 @@ class Unparser:
         if six.PY3:
             self.write(repr_n.replace("inf", INFSTR))
         else:
-            # Parenthesize negative numbers, to avoid turning (-1)**2 into -1**2.
+            # Parenthesize negative numbers, to avoid turning (-1)**2 into
+            # -1**2.
             if repr_n.startswith("-"):
                 self.write("(")
             if "inf" in repr_n and repr_n.endswith("*j"):
@@ -624,13 +640,14 @@ class Unparser:
         self.write(")")
 
     def _Set(self, t):
-        assert(t.elts) # should be at least one element
+        assert(t.elts)  # should be at least one element
         self.write("{")
         interleave(lambda: self.write(", "), self.dispatch, t.elts)
         self.write("}")
 
     def _Dict(self, t):
         self.write("{")
+
         def write_key_value_pair(k, v):
             self.dispatch(k)
             self.write(": ")
@@ -658,12 +675,14 @@ class Unparser:
             interleave(lambda: self.write(", "), self.dispatch, t.elts)
         self.write(")")
 
-    unop = {"Invert":"~", "Not": "not", "UAdd":"+", "USub":"-"}
+    unop = {"Invert": "~", "Not": "not", "UAdd": "+", "USub": "-"}
+
     def _UnaryOp(self, t):
         self.write("(")
         self.write(self.unop[t.op.__class__.__name__])
         self.write(" ")
-        if six.PY2 and isinstance(t.op, ast.USub) and isinstance(t.operand, ast.Num):
+        if six.PY2 and isinstance(
+                t.op, ast.USub) and isinstance(t.operand, ast.Num):
             # If we're applying unary minus to a number, parenthesize the number.
             # This is necessary: -2147483648 is different from -(2147483648) on
             # a 32-bit machine (the first is an int, the second a long), and
@@ -676,9 +695,10 @@ class Unparser:
             self.dispatch(t.operand)
         self.write(")")
 
-    binop = { "Add":"+", "Sub":"-", "Mult":"*", "MatMult":"@", "Div":"/", "Mod":"%",
-                    "LShift":"<<", "RShift":">>", "BitOr":"|", "BitXor":"^", "BitAnd":"&",
-                    "FloorDiv":"//", "Pow": "**"}
+    binop = {"Add": "+", "Sub": "-", "Mult": "*", "MatMult": "@", "Div": "/", "Mod": "%",
+             "LShift": "<<", "RShift": ">>", "BitOr": "|", "BitXor": "^", "BitAnd": "&",
+             "FloorDiv": "//", "Pow": "**"}
+
     def _BinOp(self, t):
         self.write("(")
         self.dispatch(t.left)
@@ -686,8 +706,9 @@ class Unparser:
         self.dispatch(t.right)
         self.write(")")
 
-    cmpops = {"Eq":"==", "NotEq":"!=", "Lt":"<", "LtE":"<=", "Gt":">", "GtE":">=",
-                        "Is":"is", "IsNot":"is not", "In":"in", "NotIn":"not in"}
+    cmpops = {"Eq": "==", "NotEq": "!=", "Lt": "<", "LtE": "<=", "Gt": ">", "GtE": ">=",
+              "Is": "is", "IsNot": "is not", "In": "in", "NotIn": "not in"}
+
     def _Compare(self, t):
         self.write("(")
         self.dispatch(t.left)
@@ -697,18 +718,20 @@ class Unparser:
         self.write(")")
 
     boolops = {ast.And: 'and', ast.Or: 'or'}
+
     def _BoolOp(self, t):
         self.write("(")
         s = " %s " % self.boolops[t.op.__class__]
         interleave(lambda: self.write(s), self.dispatch, t.values)
         self.write(")")
 
-    def _Attribute(self,t):
+    def _Attribute(self, t):
         self.dispatch(t.value)
         # Special case: 3.__abs__() is a syntax error, so if t.value
         # is an integer literal then we need to either parenthesize
         # it or add an extra space to get 3 .__abs__().
-        if isinstance(t.value, getattr(ast, 'Constant', getattr(ast, 'Num', None))) and isinstance(t.value.n, int):
+        if isinstance(t.value, getattr(ast, 'Constant', getattr(
+                ast, 'Num', None))) and isinstance(t.value.n, int):
             self.write(" ")
         self.write(".")
         self.write(t.attr)
@@ -718,22 +741,30 @@ class Unparser:
         self.write("(")
         comma = False
         for e in t.args:
-            if comma: self.write(", ")
-            else: comma = True
+            if comma:
+                self.write(", ")
+            else:
+                comma = True
             self.dispatch(e)
         for e in t.keywords:
-            if comma: self.write(", ")
-            else: comma = True
+            if comma:
+                self.write(", ")
+            else:
+                comma = True
             self.dispatch(e)
         if sys.version_info[:2] < (3, 5):
             if t.starargs:
-                if comma: self.write(", ")
-                else: comma = True
+                if comma:
+                    self.write(", ")
+                else:
+                    comma = True
                 self.write("*")
                 self.dispatch(t.starargs)
             if t.kwargs:
-                if comma: self.write(", ")
-                else: comma = True
+                if comma:
+                    self.write(", ")
+                else:
+                    comma = True
                 self.write("**")
                 self.dispatch(t.kwargs)
         self.write(")")
@@ -783,8 +814,10 @@ class Unparser:
         defaults = [None] * (len(all_args) - len(t.defaults)) + t.defaults
         for index, elements in enumerate(zip(all_args, defaults), 1):
             a, d = elements
-            if first:first = False
-            else: self.write(", ")
+            if first:
+                first = False
+            else:
+                self.write(", ")
             self.dispatch(a)
             if d:
                 self.write("=")
@@ -794,8 +827,10 @@ class Unparser:
 
         # varargs, or bare '*' if no varargs but keyword-only arguments present
         if t.vararg or getattr(t, "kwonlyargs", False):
-            if first:first = False
-            else: self.write(", ")
+            if first:
+                first = False
+            else:
+                self.write(", ")
             self.write("*")
             if t.vararg:
                 if hasattr(t.vararg, 'arg'):
@@ -812,8 +847,10 @@ class Unparser:
         # keyword-only arguments
         if getattr(t, "kwonlyargs", False):
             for a, d in zip(t.kwonlyargs, t.kw_defaults):
-                if first:first = False
-                else: self.write(", ")
+                if first:
+                    first = False
+                else:
+                    self.write(", ")
                 self.dispatch(a),
                 if d:
                     self.write("=")
@@ -821,22 +858,25 @@ class Unparser:
 
         # kwargs
         if t.kwarg:
-            if first:first = False
-            else: self.write(", ")
+            if first:
+                first = False
+            else:
+                self.write(", ")
             if hasattr(t.kwarg, 'arg'):
-                self.write("**"+t.kwarg.arg)
+                self.write("**" + t.kwarg.arg)
                 if t.kwarg.annotation:
                     self.write(": ")
                     self.dispatch(t.kwarg.annotation)
             else:
-                self.write("**"+t.kwarg)
+                self.write("**" + t.kwarg)
                 if getattr(t, 'kwargannotation', None):
                     self.write(": ")
                     self.dispatch(t.kwargannotation)
 
     def _keyword(self, t):
         if t.arg is None:
-            # starting from Python 3.5 this denotes a kwargs part of the invocation
+            # starting from Python 3.5 this denotes a kwargs part of the
+            # invocation
             self.write("**")
         else:
             self.write(t.arg)
@@ -854,13 +894,14 @@ class Unparser:
     def _alias(self, t):
         self.write(t.name)
         if t.asname:
-            self.write(" as "+t.asname)
+            self.write(" as " + t.asname)
 
     def _withitem(self, t):
         self.dispatch(t.context_expr)
         if t.optional_vars:
             self.write(" as ")
             self.dispatch(t.optional_vars)
+
 
 def roundtrip(filename, output=sys.stdout):
     if six.PY3:
@@ -871,9 +912,13 @@ def roundtrip(filename, output=sys.stdout):
     else:
         with open(filename, "r") as pyfile:
             source = pyfile.read()
-    tree = compile(source, filename, "exec", ast.PyCF_ONLY_AST, dont_inherit=True)
+    tree = compile(
+        source,
+        filename,
+        "exec",
+        ast.PyCF_ONLY_AST,
+        dont_inherit=True)
     Unparser(tree, output)
-
 
 
 def testdir(a):
@@ -894,6 +939,7 @@ def testdir(a):
             elif os.path.isdir(fullname):
                 testdir(fullname)
 
+
 def main(args):
     if args[0] == '--testdir':
         for a in args[1:]:
@@ -902,5 +948,6 @@ def main(args):
         for a in args:
             roundtrip(a)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main(sys.argv[1:])
