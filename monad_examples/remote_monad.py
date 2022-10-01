@@ -25,6 +25,10 @@ API
     - [X] It determine args_paths & kwargs_paths via get_path of the args & kwargs ReturnObj
     - [X] It determine output_paths via the pre-build ReturnObjs' get_path
         - [X] ReturnObjs of output is build according to the Return __annotations__ of the func
+
+- [ ] Build upload & download API on fastapi_playground
+    - [ ] Try to send serialized python obj or data to Remote Machine
+- [ ] Enable Multithread Paradag construction and faster runnning
 """
 
 from functools import wraps
